@@ -196,25 +196,32 @@ const ChapterPage = ({
   useEffect(() => {
     let mounted = true;
     if (isActive && verses.length === 0) {
-      getVerses(boky.slug, toko).then((data) => {
-        if (!mounted) return;
-        setVerses(data);
-        setLoading(false);
-        if (targetVerseId || targetVerse) {
-          setTimeout(() => {
-            const idx = data.findIndex(v =>
-              targetVerseId ? v.id === targetVerseId : v.laharana === targetVerse
-            );
-            if (idx >= 0) {
-              flatListRef.current?.scrollToIndex({
-                index: idx,
-                animated: true,
-                viewPosition: 0.15,
-              });
-            }
-          }, 600);
-        }
-      });
+      setLoading(true);
+      getVerses(boky.slug, toko)
+        .then((data) => {
+          if (!mounted) return;
+          setVerses(data);
+          setLoading(false);
+          
+          if (targetVerseId || targetVerse) {
+            setTimeout(() => {
+              const idx = data.findIndex(v =>
+                targetVerseId ? v.id === targetVerseId : v.laharana === targetVerse
+              );
+              if (idx >= 0) {
+                flatListRef.current?.scrollToIndex({
+                  index: idx,
+                  animated: true,
+                  viewPosition: 0.15,
+                });
+              }
+            }, 600);
+          }
+        })
+        .catch((err) => {
+          console.error(`Error fetching verses for ${boky.slug} ${toko}:`, err);
+          if (mounted) setLoading(false);
+        });
     }
     return () => { mounted = false; };
   }, [boky.slug, toko, getVerses, targetVerse, targetVerseId, isActive, verses.length]);

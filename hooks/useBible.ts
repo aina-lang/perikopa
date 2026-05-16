@@ -66,36 +66,26 @@ export const useBible = () => {
   }, [db]);
 
   const getVerses = useCallback(async (boky_slug: string, toko: number): Promise<Andininy[]> => {
-    // Get book id
-    const book = await db.getFirstAsync<{ id: number }>(
-      'SELECT id FROM books WHERE shortName = ?',
-      [boky_slug]
-    );
-    if (!book) return [];
-
-    // Get toko id
-    const tokoRow = await db.getFirstAsync<{ id: number }>(
-      'SELECT id FROM tokos WHERE book_id = ? AND numero = ?',
-      [book.id, toko]
-    );
-    if (!tokoRow) return [];
-
-    // Get verses
+    // Une seule requête JOIN au lieu de 3 requêtes séparées
     const rows = await db.getAllAsync<{
       id: number;
       idToko: number;
       numeroToko: number;
       text: string;
     }>(
-      'SELECT id, idToko, numeroToko, text FROM andininys WHERE idToko = ? ORDER BY id ASC',
-      [tokoRow.id]
+      `SELECT a.id, a.idToko, a.numeroToko, a.text 
+       FROM andininys a
+       JOIN tokos t ON a.idToko = t.id
+       JOIN books b ON t.book_id = b.id
+       WHERE b.shortName = ? AND t.numero = ?
+       ORDER BY a.id ASC`,
+      [boky_slug, toko]
     );
 
     return rows.map((r, index) => {
       let lohateny: string | undefined;
       let votoatiny = r.text;
 
-      // Extract subtitle from [...]
       const match = r.text.match(/^\[(.+?)\]\s*/);
       if (match) {
         lohateny = match[1];
@@ -106,7 +96,7 @@ export const useBible = () => {
         id: r.id,
         boky_slug: boky_slug,
         toko: toko,
-        laharana: index + 1,   // sequential verse number within chapter
+        laharana: index + 1,
         votoatiny,
         lohateny,
       };

@@ -57,11 +57,28 @@ export default function App() {
     );
   }
 
+  const initializeDB = async (db: any) => {
+    try {
+      await db.execAsync(`
+        CREATE INDEX IF NOT EXISTS idx_books_slug ON books (shortName);
+        CREATE INDEX IF NOT EXISTS idx_tokos_book ON tokos (book_id, numero);
+        CREATE INDEX IF NOT EXISTS idx_andininys_toko ON andininys (idToko);
+      `);
+      console.log('Database indexes initialized');
+    } catch (e) {
+      console.error('Error initializing indexes:', e);
+    }
+  };
+
   return (
     <SafeAreaProvider>
       <StatusBar backgroundColor={theme.colors.background.primary} barStyle="dark-content" translucent={false} />
       <NavigationContainer>
-        <SQLiteProvider databaseName="perikopa.db" assetSource={{ assetId: require('./assets/perikopa.db') }}>
+        <SQLiteProvider 
+          databaseName="perikopa.db" 
+          assetSource={{ assetId: require('./assets/perikopa.db') }}
+          onInit={initializeDB}
+        >
           <PerikopaProvider>
             <Stack.Navigator initialRouteName={isFirstLaunch ? "Onboarding" : "Home"}>
               <Stack.Screen 
