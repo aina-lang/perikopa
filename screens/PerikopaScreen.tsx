@@ -313,27 +313,26 @@ const PerikopaScreen = memo(({ navigation }: PerikopaScreenProps) => {
               return (
                 <View
                   key={entry.id}
-                  className={`flex-row items-center gap-1 px-3 py-2.5
+                  className={`flex-row items-stretch gap-1.5 px-3 py-2.5
                     ${eIdx % 2 === 0 ? 'bg-sky-50/50' : 'bg-white'}
                     ${!isLast ? 'border-b border-blue-50' : ''}
                   `}
                 >
                   {/* Date */}
-                  <View className="w-12">
-                    <Text className="text-xs font-black text-blue-900">
+                  <View className="w-[50px] justify-center">
+                    <Text className="text-[15px] font-black text-blue-900">
                       {entry.date.split(' ')[0]}
                     </Text>
-                    <Text className="text-[9px] font-semibold text-blue-300" numberOfLines={1}>
+                    <Text className="text-[11px] font-bold text-blue-400" numberOfLines={1}>
                       {(() => {
                         const parts = entry.date.split(' ');
                         const monthAbbr = parts[1]?.replace('.', '').toUpperCase();
-                        const year = parts[2];
                         const monthsMg: any = {
                           'JAN': 'Janoary', 'FEV': 'Febroary', 'MAR': 'Martsa', 'AVR': 'Aprily',
                           'MAI': 'May', 'JUN': 'Jona', 'JUL': 'Jolay', 'AOU': 'Aogositra',
                           'SEP': 'Septambra', 'OCT': 'Oktobra', 'NOV': 'Novambra', 'DEC': 'Desambra'
                         };
-                        return `${monthsMg[monthAbbr] || monthAbbr} ${year}`;
+                        return `${monthsMg[monthAbbr] || monthAbbr}`;
                       })()}
                     </Text>
                   </View>
@@ -342,9 +341,9 @@ const PerikopaScreen = memo(({ navigation }: PerikopaScreenProps) => {
                   <TouchableOpacity
                     onPress={() => handlePressReference(entry.testamentTaloha)}
                     activeOpacity={0.7}
-                    className="flex-1 rounded-lg bg-blue-50 px-1.5 py-2"
+                    className="flex-1 rounded-xl bg-blue-50 px-1.5 py-2.5 justify-center"
                   >
-                    <Text className="text-center text-[10px] font-bold text-blue-700" numberOfLines={2}>
+                    <Text className="text-center text-[11px] font-bold text-blue-700" numberOfLines={3}>
                       {entry.testamentTaloha}
                     </Text>
                   </TouchableOpacity>
@@ -353,9 +352,9 @@ const PerikopaScreen = memo(({ navigation }: PerikopaScreenProps) => {
                   <TouchableOpacity
                     onPress={() => handlePressReference(entry.filazantsara)}
                     activeOpacity={0.7}
-                    className="flex-1 rounded-lg bg-emerald-50 px-1.5 py-2"
+                    className="flex-1 rounded-xl bg-emerald-50 px-1.5 py-2.5 justify-center"
                   >
-                    <Text className="text-center text-[10px] font-bold text-emerald-700" numberOfLines={2}>
+                    <Text className="text-center text-[11px] font-bold text-emerald-700" numberOfLines={3}>
                       {entry.filazantsara}
                     </Text>
                   </TouchableOpacity>
@@ -364,9 +363,9 @@ const PerikopaScreen = memo(({ navigation }: PerikopaScreenProps) => {
                   <TouchableOpacity
                     onPress={() => handlePressReference(entry.epistily)}
                     activeOpacity={0.7}
-                    className="flex-1 rounded-lg bg-sky-50 px-1.5 py-2"
+                    className="flex-1 rounded-xl bg-sky-50 px-1.5 py-2.5 justify-center"
                   >
-                    <Text className="text-center text-[10px] font-bold text-sky-700" numberOfLines={2}>
+                    <Text className="text-center text-[11px] font-bold text-sky-700" numberOfLines={3}>
                       {entry.epistily}
                     </Text>
                   </TouchableOpacity>
@@ -375,9 +374,9 @@ const PerikopaScreen = memo(({ navigation }: PerikopaScreenProps) => {
                   <TouchableOpacity
                     onPress={() => handlePressReference(entry.fampaherezana)}
                     activeOpacity={0.7}
-                    className="w-16 rounded-lg bg-amber-50 px-1.5 py-2"
+                    className="w-16 rounded-xl bg-amber-50 px-1.5 py-2.5 justify-center"
                   >
-                    <Text className="text-center text-[10px] font-black text-amber-700" numberOfLines={2}>
+                    <Text className="text-center text-[11px] font-black text-amber-700" numberOfLines={3}>
                       {entry.fampaherezana}
                     </Text>
                   </TouchableOpacity>
