@@ -47,7 +47,7 @@ export const useBible = () => {
       slug: r.shortName,
       anarana: formatBookName(r.name || r.shortName, r.shortName),
       laharana: r.ordre || r.id,
-      testament: r.type,
+      testament: r.id <= 39 ? 'TALOHA' : 'VAOVAO',
     }));
   }, [db]);
 
