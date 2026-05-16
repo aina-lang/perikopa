@@ -91,20 +91,27 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
     });
   };
 
-  // ─── Viewability ──────────────────────────────────────────────────────────────
-  const viewabilityConfig = useRef({
-    viewAreaCoveragePercentThreshold: 50,
-  }).current;
+  const currentIndexRef = useRef(currentIndex);
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
 
-  const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
-    if (viewableItems.length > 0) {
-      const newIndex = viewableItems[0].index;
-      if (newIndex !== null && newIndex !== undefined) {
-        setCurrentIndex(newIndex);
-        const item = allChapters[newIndex];
-        if (item) updateHeader(item);
-        setSelectedVerse(null);
+  const onScroll = useRef((event: any) => {
+    const x = event.nativeEvent.contentOffset.x;
+    const newIndex = Math.round(x / width);
+    
+    if (newIndex >= 0 && newIndex < allChapters.length && newIndex !== currentIndexRef.current) {
+      // On met à jour l'état (pour le rendu) et le ref (pour le prochain calcul)
+      currentIndexRef.current = newIndex;
+      setCurrentIndex(newIndex);
+      
+      const item = allChapters[newIndex];
+      if (item) {
+        navigation.setOptions({
+          title: `${formatBookName(item.boky.anarana)} ${item.toko}`,
+        });
       }
+      setSelectedVerse(null);
     }
   }).current;
 
@@ -188,8 +195,8 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
           offset: width * index,
           index,
         })}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={viewabilityConfig}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         windowSize={5}
         maxToRenderPerBatch={3}
         initialNumToRender={3}
