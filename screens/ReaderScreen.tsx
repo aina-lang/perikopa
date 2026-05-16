@@ -5,9 +5,11 @@ import { useBible } from '../hooks/useBible';
 import ChapterPage from '../components/ChapterPage';
 import { Andininy, Boky } from '../services/database';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
-import { Copy, BookmarkPlus, BookmarkMinus } from 'lucide-react-native';
+import { Copy, BookmarkPlus, BookmarkMinus, Share2 } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useBookmarks } from '../hooks/useBookmarks';
+import { BlurView } from 'expo-blur';
+import { theme } from '../constants/theme';
 
 interface FlattenedChapter {
   boky: Boky;
@@ -49,7 +51,12 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
       
       const item = data[safeIdx];
       if (item) {
-        navigation.setOptions({ title: `${formatBookName(item.boky.anarana)} ${item.index}` });
+        navigation.setOptions({ 
+          title: `${formatBookName(item.boky.anarana)} ${item.index}`,
+          headerStyle: { backgroundColor: theme.colors.background },
+          headerTintColor: theme.colors.textPrimary,
+          headerShadowVisible: false,
+        });
       }
       
       setLoading(false);
@@ -73,7 +80,12 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
         setCurrentIndex(newIndex);
         const item = allChapters[newIndex];
         if (item) {
-          navigation.setOptions({ title: `${formatBookName(item.boky.anarana)} ${item.index}` });
+          navigation.setOptions({ 
+            title: `${formatBookName(item.boky.anarana)} ${item.index}`,
+            headerStyle: { backgroundColor: theme.colors.background },
+            headerTintColor: theme.colors.textPrimary,
+            headerShadowVisible: false,
+          });
         }
         setSelectedVerse(null);
       }
@@ -120,7 +132,14 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
   const verseIsBookmarked = selectedVerse && current ? isBookmarked(current.boky.slug, current.toko, selectedVerse.laharana) : false;
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1" style={{ backgroundColor: theme.colors.background }}>
+      {/* Mesh Gradient Background Approximation */}
+      <View className="absolute inset-0 overflow-hidden" pointerEvents="none">
+        <View className="absolute -top-32 -left-32 h-96 w-96 rounded-full opacity-10" style={{ backgroundColor: theme.colors.primary, transform: [{ scale: 1.5 }] }} />
+        <View className="absolute -right-32 top-1/2 h-96 w-96 rounded-full opacity-10" style={{ backgroundColor: theme.colors.secondary, transform: [{ scale: 1.5 }] }} />
+        <View className="absolute -bottom-32 left-1/4 h-96 w-96 rounded-full opacity-10" style={{ backgroundColor: '#8B5CF6', transform: [{ scale: 1.5 }] }} />
+      </View>
+
       <FlatList
         ref={flatListRef}
         data={allChapters}
@@ -168,24 +187,26 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
         <Animated.View 
           entering={FadeInDown.springify()} 
           exiting={FadeOutDown}
-          className="absolute bottom-8 left-4 right-4 flex-row justify-around rounded-2xl p-4"
-          style={{ backgroundColor: '#1e3a8a', shadowColor: '#1e3a8a', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.5, shadowRadius: 8, elevation: 8 }}
+          className="absolute bottom-10 left-6 right-6 overflow-hidden rounded-[32px]"
+          style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 20, elevation: 10 }}
         >
-          <TouchableOpacity onPress={handleCopy} className="items-center justify-center">
-            <Copy size={24} color="#fff" />
-            <Text className="mt-1 text-xs font-medium text-white">Copier</Text>
-          </TouchableOpacity>
+          <BlurView intensity={40} tint="dark" className="flex-row justify-around p-4" style={{ backgroundColor: theme.colors.glassBg, borderColor: theme.colors.glassBorder, borderWidth: 1 }}>
+            <TouchableOpacity onPress={handleCopy} className="h-12 w-12 items-center justify-center rounded-full bg-white/10">
+              <Copy size={22} color={theme.colors.textPrimary} />
+            </TouchableOpacity>
 
-          <TouchableOpacity onPress={handleBookmark} className="items-center justify-center">
-            {verseIsBookmarked ? (
-              <BookmarkMinus size={24} color="#fca5a5" />
-            ) : (
-              <BookmarkPlus size={24} color="#fff" />
-            )}
-            <Text className={`mt-1 text-xs font-medium ${verseIsBookmarked ? 'text-red-300' : 'text-white'}`}>
-              {verseIsBookmarked ? 'Retirer' : 'Marquer'}
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity onPress={handleBookmark} className="h-12 w-12 items-center justify-center rounded-full" style={{ backgroundColor: verseIsBookmarked ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.1)' }}>
+              {verseIsBookmarked ? (
+                <BookmarkMinus size={22} color="#fca5a5" />
+              ) : (
+                <BookmarkPlus size={22} color={theme.colors.textPrimary} />
+              )}
+            </TouchableOpacity>
+            
+            <TouchableOpacity onPress={() => {}} className="h-12 w-12 items-center justify-center rounded-full bg-white/10">
+              <Share2 size={22} color={theme.colors.textPrimary} />
+            </TouchableOpacity>
+          </BlurView>
         </Animated.View>
       )}
     </View>
