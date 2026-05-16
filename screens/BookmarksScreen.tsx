@@ -47,7 +47,12 @@ export default function BookmarksScreen({ navigation }: BookmarksScreenProps) {
         renderItem={({ item, index }) => (
           <Animated.View entering={FadeInUp.delay(index * 50).springify()}>
             <TouchableOpacity
-              onPress={() => navigation.navigate('Reader', { boky: item.boky, toko: item.andininy.toko })}
+              onPress={() => navigation.navigate('Reader', { 
+                boky: item.boky, 
+                toko: item.andininy.toko,
+                targetVerse: item.andininy.laharana,
+                targetVerseId: item.andininy.id
+              })}
               className="mb-4 rounded-2xl bg-white p-5"
               style={{ shadowColor: '#93c5fd', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.8, shadowRadius: 2, elevation: 2 }}
             >

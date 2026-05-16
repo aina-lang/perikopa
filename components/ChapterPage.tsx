@@ -12,10 +12,11 @@ interface ChapterPageProps {
   onSelectVerse: (verse: Andininy | null) => void;
   bookmarks: BookmarkItem[];
   targetVerse?: number;
+  targetVerseId?: number;
   searchQuery?: string;
 }
 
-const ChapterPage = ({ boky, toko, selectedVerse, onSelectVerse, bookmarks, targetVerse, searchQuery }: ChapterPageProps) => {
+const ChapterPage = ({ boky, toko, selectedVerse, onSelectVerse, bookmarks, targetVerse, targetVerseId, searchQuery }: ChapterPageProps) => {
   const { getVerses } = useBible();
   const [verses, setVerses] = useState<Andininy[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,14 +28,16 @@ const ChapterPage = ({ boky, toko, selectedVerse, onSelectVerse, bookmarks, targ
       if (mounted) {
         setVerses(data);
         setLoading(false);
+        
         // Scroll to target verse — position 0 = at top of screen
-        if (targetVerse && targetVerse > 1) {
+        if (targetVerseId || targetVerse) {
+          // Use a slightly longer delay to ensure FlatList is ready
           setTimeout(() => {
-            const idx = data.findIndex(v => v.laharana === targetVerse);
-            if (idx > 0) {
+            const idx = data.findIndex(v => (targetVerseId ? v.id === targetVerseId : v.laharana === targetVerse));
+            if (idx >= 0) {
               flatListRef.current?.scrollToIndex({ index: idx, animated: true, viewPosition: 0 });
             }
-          }, 400);
+          }, 500);
         }
       }
     });
@@ -65,13 +68,15 @@ const ChapterPage = ({ boky, toko, selectedVerse, onSelectVerse, bookmarks, targ
         renderItem={({ item, index }) => {
           const isSelected = selectedVerse?.id === item.id;
           const isMarked = bookmarks.some(b => b.boky.slug === boky.slug && b.andininy.toko === toko && b.andininy.laharana === item.laharana);
-          const isTarget = item.laharana === targetVerse;
+          const isTarget = targetVerseId ? item.id === targetVerseId : item.laharana === targetVerse;
 
           let containerClass = 'mb-2 flex-row rounded-xl p-3 ';
           let containerStyle: any = {};
           if (isSelected) {
             containerClass += 'bg-blue-100';
             containerStyle = { shadowColor: '#93c5fd', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.8, shadowRadius: 2, elevation: 2 };
+          } else if (isTarget) {
+            containerClass += 'bg-white border-l-4 border-yellow-400';
           } else if (isMarked) {
             containerClass += 'bg-emerald-50 border-l-4 border-emerald-500';
           } else {
@@ -105,19 +110,19 @@ const ChapterPage = ({ boky, toko, selectedVerse, onSelectVerse, bookmarks, targ
                 style={containerStyle}
               >
                 <Text className="mr-3 mt-1 text-sm font-bold" style={{ color: '#1e3a8a' }}>{item.laharana}</Text>
-                {(isTarget && searchQuery) ? (
-                  <Text className="flex-1 text-lg leading-relaxed">
-                    {item.votoatiny.split(new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')).map((part, i) =>
+                <Text className="flex-1 text-lg leading-relaxed">
+                  {(searchQuery && isTarget) ? (
+                    item.votoatiny.split(new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')).map((part, i) =>
                       part.toLowerCase() === searchQuery.toLowerCase() ? (
                         <Text key={i} style={{ backgroundColor: '#fef08a', color: '#1e3a8a', fontWeight: 'bold' }}>{part}</Text>
                       ) : (
-                        <Text key={i} className="text-slate-800">{part}</Text>
+                        <Text key={i} className="text-slate-800" style={isMarked ? { backgroundColor: '#d1fae5' } : {}}>{part}</Text>
                       )
-                    )}
-                  </Text>
-                ) : (
-                  <Text className="flex-1 text-lg leading-relaxed text-slate-800">{item.votoatiny}</Text>
-                )}
+                    )
+                  ) : (
+                    <Text className="text-slate-800" style={isMarked ? { backgroundColor: '#d1fae5' } : {}}>{item.votoatiny}</Text>
+                  )}
+                </Text>
               </TouchableOpacity>
             </Animated.View>
           );

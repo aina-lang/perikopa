@@ -100,7 +100,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       <Text className="text-base leading-relaxed text-slate-700">
         {parts.map((part, i) =>
           part.toLowerCase() === q.toLowerCase() ? (
-            <Text key={i} className="font-bold" style={{ color: '#1e3a8a', backgroundColor: '#dbeafe' }}>
+            <Text key={i} className="font-bold" style={{ color: '#1e3a8a', backgroundColor: '#fef08a' }}>
               {part}
             </Text>
           ) : (
@@ -265,7 +265,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               <TouchableOpacity
                 onPress={() => {
                   Keyboard.dismiss();
-                  navigation.navigate('Reader', {
+                  navigation.push('Reader', {
                     boky: {
                       id: 0,
                       slug: item.boky_slug,
@@ -275,6 +275,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                     },
                     toko: item.toko,
                     targetVerse: item.laharana,
+                    targetVerseId: item.id,
                     searchQuery: query,
                   });
                 }}

@@ -105,7 +105,7 @@ export const useBible = () => {
     }>(
       `SELECT a.id, a.idToko, a.numeroToko, a.text,
               b.shortName, t.numero AS tokoNumero, li.name AS bookName,
-              ROW_NUMBER() OVER (PARTITION BY a.idToko ORDER BY a.id) AS rowNum
+              (SELECT COUNT(*) FROM andininys a2 WHERE a2.idToko = a.idToko AND a2.id <= a.id) AS rowNum
        FROM andininys a
        JOIN tokos t ON a.idToko = t.id
        JOIN books b ON t.book_id = b.id

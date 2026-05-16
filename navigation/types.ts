@@ -4,7 +4,7 @@ import { Boky } from '../services/database';
 export type RootStackParamList = {
   Books: undefined;
   Chapters: { boky: Boky };
-  Reader: { boky: Boky; toko: number; targetVerse?: number; searchQuery?: string };
+  Reader: { boky: Boky; toko: number; targetVerse?: number; targetVerseId?: number; searchQuery?: string };
   Bookmarks: undefined;
   Search: undefined;
 };

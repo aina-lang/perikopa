@@ -11,7 +11,7 @@ import * as Clipboard from 'expo-clipboard';
 import { useBookmarks } from '../hooks/useBookmarks';
 
 export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
-  const { boky, toko, targetVerse, searchQuery } = route.params;
+  const { boky, toko, targetVerse, targetVerseId, searchQuery } = route.params;
   const { getChapters } = useBible();
   const { addBookmark, removeBookmark, isBookmarked, bookmarks } = useBookmarks();
   
@@ -24,13 +24,18 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
   const pagerRef = useRef<PagerView>(null);
 
   useEffect(() => {
+    setSelectedVerse(null);
     getChapters(boky.slug).then((data) => {
       setChapters(data);
       const idx = Math.max(0, data.findIndex((c) => c === toko));
       setCurrentIndex(idx);
       setLoading(false);
+      // If pager is already mounted and toko changes, move to it
+      if (pagerRef.current) {
+        pagerRef.current.setPage(idx);
+      }
     });
-  }, [boky, toko, getChapters]);
+  }, [boky.slug, toko, getChapters]);
 
   const onPageSelected = (e: any) => {
     const newIndex = e.nativeEvent.position;
@@ -107,7 +112,8 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
                   onSelectVerse={setSelectedVerse}
                   bookmarks={bookmarks}
                   targetVerse={chapterToko === toko ? targetVerse : undefined}
-                  searchQuery={chapterToko === toko ? searchQuery : undefined}
+                  targetVerseId={chapterToko === toko ? targetVerseId : undefined}
+                  searchQuery={searchQuery}
                 />
               ) : (
                 <View className="flex-1 items-center justify-center bg-white">
