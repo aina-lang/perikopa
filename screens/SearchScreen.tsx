@@ -210,18 +210,12 @@ export default function SearchScreen({ }: SearchScreenProps) {
             const count = bookCounts.get(b.anarana) || 0;
             const isActive = selectedBook === b.anarana;
             const hasResults = searched && count > 0;
-            const noResults = searched && count === 0;
             return (
               <TouchableOpacity
                 key={b.slug}
                 onPress={() => setSelectedBook(isActive ? null : b.anarana)}
-                disabled={noResults}
                 className={`rounded-full px-4 py-2 ${
-                  isActive
-                    ? 'bg-primary-600'
-                    : noResults
-                    ? 'bg-background-secondary opacity-30'
-                    : 'bg-background-secondary'
+                  isActive ? 'bg-primary-600' : 'bg-background-secondary'
                 }`}
               >
                 <Text className={`text-xs font-bold ${

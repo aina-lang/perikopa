@@ -87,9 +87,6 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
   const updateHeader = (item: FlattenedChapter) => {
     navigation.setOptions({
       title: `${formatBookName(item.boky.anarana)} ${item.index}`,
-      headerTintColor:      theme.tokens.header.title,
-      headerShadowVisible:  false,
-      headerStyle: {backgroundColor: theme.colors.background.primary},
     });
   };
 

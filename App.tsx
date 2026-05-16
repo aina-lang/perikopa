@@ -21,10 +21,21 @@ import theme from './constants/theme';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+const HEADER_STYLE = {
+  headerStyle: { backgroundColor: theme.colors.background.primary },
+  headerTintColor: theme.tokens.header.title,
+  headerTitleStyle: {
+    fontWeight: 'bold' as const,
+    fontSize: 18,
+    color: theme.tokens.header.title,
+  },
+  headerShadowVisible: false,
+};
+
 export default function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar backgroundColor="#F0F7FF" barStyle="dark-content" translucent={false} />
+      <StatusBar backgroundColor={theme.colors.background.primary} barStyle="dark-content" translucent={false} />
       <NavigationContainer>
         <SQLiteProvider databaseName="perikopa.db" assetSource={{ assetId: require('./assets/perikopa.db') }}>
           <PerikopaProvider>
@@ -33,16 +44,8 @@ export default function App() {
                 name="Home" 
                 component={HomeScreen} 
                 options={({ navigation }: any) => ({ 
+                  ...HEADER_STYLE,
                   title: 'Perikopa',
-                  headerShown: true,
-                  headerStyle: { backgroundColor: '#F0F7FF' },
-                  headerTintColor: theme.tokens.header.title,
-                  headerTitleStyle: { 
-                    fontWeight: 'bold',
-                    fontSize: 18,
-                    color: theme.tokens.header.title,
-                  },
-                  headerShadowVisible: false,
                   headerRight: () => (
                     <TouchableOpacity onPress={() => navigation.navigate('About')} className="p-2 mr-2">
                       <Info size={22} color={theme.tokens.header.title} />
@@ -54,6 +57,7 @@ export default function App() {
                 name="Books" 
                 component={BooksScreen} 
                 options={({ navigation }: any) => ({ 
+                  ...HEADER_STYLE,
                   title: 'Baiboly',
                   headerRight: () => (
                     <View className="flex-row gap-1">
@@ -71,6 +75,7 @@ export default function App() {
                 name="Chapters" 
                 component={ChaptersScreen} 
                 options={({ route }: any) => ({ 
+                  ...HEADER_STYLE,
                   title: route.params.boky.anarana,
                 })}
               />
@@ -78,6 +83,7 @@ export default function App() {
                 name="Reader" 
                 component={ReaderScreen} 
                 options={({ route }: any) => ({ 
+                  ...HEADER_STYLE,
                   title: `${route.params.boky.anarana} ${route.params.toko}`,
                 })}
               />
@@ -85,6 +91,7 @@ export default function App() {
                 name="Bookmarks" 
                 component={BookmarksScreen} 
                 options={{ 
+                  ...HEADER_STYLE,
                   title: 'Favoris',
                 }} 
               />
@@ -92,6 +99,7 @@ export default function App() {
                 name="Search" 
                 component={SearchScreen} 
                 options={{ 
+                  ...HEADER_STYLE,
                   title: 'Recherche',
                 }} 
               />
@@ -99,6 +107,7 @@ export default function App() {
                 name="About" 
                 component={AboutScreen} 
                 options={{ 
+                  ...HEADER_STYLE,
                   title: 'Momba ny App',
                 }} 
               />
@@ -106,6 +115,7 @@ export default function App() {
                 name="Perikopa" 
                 component={PerikopaScreen} 
                 options={{ 
+                  ...HEADER_STYLE,
                   title: 'Fandaharam-potoana',
                 }} 
               />

@@ -133,8 +133,7 @@ export const useBible = () => {
        JOIN books b ON t.book_id = b.id
        JOIN livres_info li ON b.id = li.idBook
        WHERE a.text LIKE ? COLLATE NOCASE
-       ORDER BY li.ordre, t.numero, a.id
-       LIMIT 150`,
+       ORDER BY li.ordre, t.numero, a.id`,
       [pattern]
     );
 
