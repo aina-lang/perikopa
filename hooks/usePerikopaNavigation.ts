@@ -60,13 +60,28 @@ export const usePerikopaNavigation = () => {
     const fullName = mapping[cleanBookName] || cleanBookName;
     const allBooks = await getBooks();
     
-    // Search by full name or slug or include
-    const book = allBooks.find(b => 
+    // Advanced matching strategy
+    let book = allBooks.find(b => 
       b.anarana.toLowerCase() === fullName.toLowerCase() ||
-      b.slug.toLowerCase() === fullName.toLowerCase() ||
-      b.anarana.toLowerCase().includes(fullName.toLowerCase()) ||
-      fullName.toLowerCase().includes(b.anarana.toLowerCase())
+      b.slug.toLowerCase() === fullName.toLowerCase()
     );
+
+    if (!book) {
+      // Try inversion (I Timoty -> Timoty I)
+      const parts = fullName.split(' ');
+      if (parts[0] === 'I' || parts[0] === 'II' || parts[0] === 'III') {
+        const inverted = `${parts.slice(1).join(' ')} ${parts[0]}`;
+        book = allBooks.find(b => b.anarana.toLowerCase() === inverted.toLowerCase());
+      }
+    }
+
+    if (!book) {
+      // Fuzzy search
+      book = allBooks.find(b => 
+        b.anarana.toLowerCase().includes(fullName.toLowerCase()) ||
+        fullName.toLowerCase().includes(b.anarana.toLowerCase())
+      );
+    }
 
     if (!book) return null;
 

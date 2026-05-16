@@ -36,17 +36,22 @@ const ChapterPage = ({ boky, toko, selectedVerse, onSelectVerse, bookmarks, targ
           setTimeout(() => {
             const idx = data.findIndex(v => (targetVerseId ? v.id === targetVerseId : v.laharana === targetVerse));
             if (idx >= 0) {
-              flatListRef.current?.scrollToIndex({ index: idx, animated: true, viewPosition: 0 });
+              flatListRef.current?.scrollToIndex({ 
+                index: idx, 
+                animated: true, 
+                viewPosition: 0 
+              });
             }
-          }, 500);
+          }, 600);
         }
       }
     });
     return () => {
       mounted = false;
     };
-  }, [boky.slug, toko, getVerses, targetVerse]);
+  }, [boky.slug, toko, getVerses, targetVerse, targetVerseId]);
 
+  
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
@@ -62,8 +67,8 @@ const ChapterPage = ({ boky, toko, selectedVerse, onSelectVerse, bookmarks, targ
         data={verses}
         keyExtractor={(item) => item.id.toString()}
         contentContainerClassName="p-4 pb-24"
+        initialNumToRender={verses.length}
         onScrollToIndexFailed={(info) => {
-          // Fallback: scroll to offset if index scroll fails
           flatListRef.current?.scrollToOffset({ offset: info.averageItemLength * info.index, animated: true });
         }}
         renderItem={({ item, index }) => {
@@ -95,7 +100,6 @@ const ChapterPage = ({ boky, toko, selectedVerse, onSelectVerse, bookmarks, targ
 
           return (
             <Animated.View entering={FadeInRight.delay(Math.min(index * 15, 300)).springify()}>
-              {/* Subtitle - amber/gold style, clearly different from bookmarks */}
               {item.lohateny && (
                 <View className="mb-3 mt-5 items-center rounded-lg px-4 py-3"
                   style={{ backgroundColor: '#fffbeb', borderTopWidth: 2, borderBottomWidth: 2, borderColor: '#f59e0b' }}

@@ -49,11 +49,12 @@ export const useBible = () => {
     );
     if (!book) return [];
 
-    // Get toko id
-    const tokoRow = await db.getFirstAsync<{ id: number }>(
-      'SELECT id FROM tokos WHERE book_id = ? AND numero = ?',
-      [book.id, toko]
+    // Get toko by relative index (toko - 1)
+    const allTokos = await db.getAllAsync<{ id: number }>(
+      'SELECT id FROM tokos WHERE book_id = ? ORDER BY numero ASC',
+      [book.id]
     );
+    const tokoRow = allTokos[toko - 1];
     if (!tokoRow) return [];
 
     // Get verses
