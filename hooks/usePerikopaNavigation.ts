@@ -1,7 +1,7 @@
 import { useBible } from './useBible';
 
 export const usePerikopaNavigation = () => {
-  const { getBooks } = useBible();
+  const { getBooks, getVerses } = useBible();
 
   const parseReference = async (ref: string) => {
     // Regex to match "Book Chapter:Verse" or "Book Chapter"
@@ -13,14 +13,14 @@ export const usePerikopaNavigation = () => {
     const chapter = parseInt(match[2]);
     const verse = match[3] ? parseInt(match[3]) : 1;
 
-    // Abbreviations mapping
+    // Abbreviations mapping to match database names
     const mapping: { [key: string]: string } = {
       'I Tan.': '1CH',
       'II Tan.': '2CH',
-      'Deo.': 'Deoteronomia',
+      'Deo.': 'Deotornomia', // Note the 'o' instead of 'e' in database
       'Mpitsara': 'Mpitsara',
-      'I Mpa.': '1 Mpanjaka',
-      'II Mpa.': '2 Mpanjaka',
+      'I Mpa.': 'Mpanjaka I',
+      'II Mpa.': 'Mpanjaka II',
       'Sal.': 'Salamo',
       'Neh.': 'Nehemia',
       'Isaia': 'Isaia',
@@ -30,18 +30,18 @@ export const usePerikopaNavigation = () => {
       'Lioka': 'Lioka',
       'Marka': 'Marka',
       'Matio': 'Matio',
-      'Asa.': 'Asa',
-      'I Kor.': '1 Korintiana',
-      'II Kor.': '2 Korintiana',
-      'I Tim.': '1 Timoty',
-      'II Tim.': '2 Timoty',
-      'I Tes.': '1 Tesaloniana',
-      'II Tes.': '2 Tesaloniana',
+      'Asa.': 'Asan\'ny Apositoly',
+      'I Kor.': 'Korintiana I',
+      'II Kor.': 'Korintiana II',
+      'I Tim.': 'Timoty I',
+      'II Tim.': 'Timoty II',
+      'I Tes.': 'Tesaloniana I',
+      'II Tes.': 'Tesaloniana II',
       'Rom.': 'Romana',
       'Gal.': 'Galatiana',
       'Jakoba': 'Jakoba',
       'Joda': 'Joda',
-      'Apo.': 'Apokalypsy',
+      'Apo.': 'Apokalipsy', // 'Apokalipsy' with 'i' in database
     };
 
     const fullName = mapping[bookName] || bookName;
@@ -56,7 +56,6 @@ export const usePerikopaNavigation = () => {
 
     if (!book) return null;
 
-    const { getVerses } = useBible();
     const verses = await getVerses(book.slug, chapter);
     const targetVerse = verses.find(v => v.laharana === verse);
 
