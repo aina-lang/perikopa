@@ -17,6 +17,7 @@ import {
 import Animated, { FadeIn, FadeInDown, Layout } from 'react-native-reanimated';
 import theme from '../constants/theme';
 import { PerikopaService } from '../services/PerikopaService';
+import { usePerikopa } from '../context/PerikopaContext';
 
 interface UpdateModalProps {
   isVisible: boolean;
@@ -26,6 +27,7 @@ interface UpdateModalProps {
 }
 
 export default function UpdateModal({ isVisible, onClose, onSuccess, isMandatory = false }: UpdateModalProps) {
+  const { refreshFromRemote } = usePerikopa();
   const [status, setStatus] = useState<'checking' | 'available' | 'no-update' | 'error' | 'downloading' | 'success'>('checking');
   const [errorType, setErrorType] = useState<'network' | 'server'>('network');
   const [errorMsg, setErrorMsg] = useState('');
@@ -62,7 +64,7 @@ export default function UpdateModal({ isVisible, onClose, onSuccess, isMandatory
 
   const handleDownload = async () => {
     setStatus('downloading');
-    const success = await PerikopaService.updateData();
+    const success = await refreshFromRemote();
     if (success) {
       setStatus('success');
       setTimeout(() => {

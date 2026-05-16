@@ -10,7 +10,10 @@ export class PerikopaService {
     try {
       const savedData = await AsyncStorage.getItem(STORAGE_KEY);
       if (savedData) {
-        return JSON.parse(savedData) as PerikopaData;
+        const parsed = JSON.parse(savedData) as PerikopaData;
+        console.log('[PerikopaService] Loaded database content:');
+        console.log(JSON.stringify(parsed, null, 2));
+        return parsed;
       }
     } catch (e) {
       console.error('Erreur chargement données distantes:', e);
