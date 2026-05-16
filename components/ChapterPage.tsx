@@ -236,6 +236,7 @@ const ChapterPage = ({
         data={verses}
         keyExtractor={(item) => item.id.toString()}
         contentContainerClassName="px-5 pt-3 pb-8"
+        showsVerticalScrollIndicator={false}
         initialNumToRender={verses.length}
         onScrollToIndexFailed={(info) => {
           flatListRef.current?.scrollToOffset({
