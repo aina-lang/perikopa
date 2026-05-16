@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { SearchScreenProps } from '../navigation/types';
 import { useBible } from '../hooks/useBible';
 import { useSearchHistory } from '../hooks/useSearchHistory';
-import { Andininy } from '../services/database';
+import { Andininy, Boky } from '../services/database';
 import { Search, X, BookOpen, Clock, Trash2, Filter } from 'lucide-react-native';
 import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
 import { ScrollView } from 'react-native';
@@ -20,7 +20,7 @@ import { ScrollView } from 'react-native';
 type SearchResult = Andininy & { bookName: string };
 
 export default function SearchScreen({ navigation }: SearchScreenProps) {
-  const { searchVerses } = useBible();
+  const { searchVerses, getBooks } = useBible();
   const { history, addToHistory, removeFromHistory, clearHistory } = useSearchHistory();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -28,8 +28,14 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const [searched, setSearched] = useState(false);
   const [showHistory, setShowHistory] = useState(true);
   const [selectedBook, setSelectedBook] = useState<string | null>(null);
+  const [books, setBooks] = useState<Boky[]>([]);
   const inputRef = useRef<TextInput>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Load all books on mount
+  useEffect(() => {
+    getBooks().then(setBooks);
+  }, [getBooks]);
 
   const runSearch = useCallback(async (text: string) => {
     if (text.trim().length < 2) {
@@ -78,10 +84,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     inputRef.current?.focus();
   };
 
-  // Derive unique books from results for filter
-  const bookNames = results.length > 0
-    ? [...new Map(results.map(r => [r.bookName, r.boky_slug])).entries()].map(([name, slug]) => ({ name, slug }))
-    : [];
+  // Derive unique books from results for count badges
+  const bookCounts = new Map<string, number>();
+  results.forEach(r => bookCounts.set(r.bookName, (bookCounts.get(r.bookName) || 0) + 1));
 
   // Filter results by selected book
   const filteredResults = selectedBook
@@ -135,6 +140,37 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             </TouchableOpacity>
           )}
         </View>
+      </View>
+
+      {/* Book filter chips - always visible */}
+      <View className="bg-white pb-2 pt-1" style={{ borderBottomWidth: 1, borderBottomColor: '#e2e8f0' }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12 }}>
+          <TouchableOpacity
+            onPress={() => setSelectedBook(null)}
+            className="mx-1 rounded-full px-4 py-2"
+            style={{ backgroundColor: selectedBook === null ? '#1e3a8a' : '#f1f5f9' }}
+          >
+            <Text className="text-xs font-bold" style={{ color: selectedBook === null ? '#fff' : '#64748b' }}>
+              Tous{results.length > 0 ? ` (${results.length})` : ''}
+            </Text>
+          </TouchableOpacity>
+          {books.map((b) => {
+            const count = bookCounts.get(b.anarana) || 0;
+            const isActive = selectedBook === b.anarana;
+            return (
+              <TouchableOpacity
+                key={b.slug}
+                onPress={() => setSelectedBook(isActive ? null : b.anarana)}
+                className="mx-1 rounded-full px-3 py-2"
+                style={{ backgroundColor: isActive ? '#1e3a8a' : '#f1f5f9' }}
+              >
+                <Text className="text-xs font-bold" style={{ color: isActive ? '#fff' : '#64748b' }}>
+                  {b.anarana}{count > 0 ? ` (${count})` : ''}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       </View>
 
       {/* History Panel */}
@@ -219,46 +255,10 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           keyExtractor={(item) => item.id.toString()}
           contentContainerClassName="p-4 pb-12"
           ListHeaderComponent={() => (
-            <View>
-              {/* Book filter chips */}
-              {bookNames.length > 1 && (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4 -mx-1">
-                  <TouchableOpacity
-                    onPress={() => setSelectedBook(null)}
-                    className="mx-1 rounded-full px-4 py-2"
-                    style={{
-                      backgroundColor: selectedBook === null ? '#1e3a8a' : '#e2e8f0',
-                    }}
-                  >
-                    <Text className="text-xs font-bold" style={{ color: selectedBook === null ? '#fff' : '#64748b' }}>
-                      Tous ({results.length})
-                    </Text>
-                  </TouchableOpacity>
-                  {bookNames.map((b) => {
-                    const count = results.filter(r => r.bookName === b.name).length;
-                    const isActive = selectedBook === b.name;
-                    return (
-                      <TouchableOpacity
-                        key={b.slug}
-                        onPress={() => setSelectedBook(isActive ? null : b.name)}
-                        className="mx-1 rounded-full px-4 py-2"
-                        style={{
-                          backgroundColor: isActive ? '#1e3a8a' : '#e2e8f0',
-                        }}
-                      >
-                        <Text className="text-xs font-bold" style={{ color: isActive ? '#fff' : '#64748b' }}>
-                          {b.name} ({count})
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
-              )}
-              <Text className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                {filteredResults.length} résultat{filteredResults.length > 1 ? 's' : ''}
-                {selectedBook ? ` dans ${selectedBook}` : ''}
-              </Text>
-            </View>
+            <Text className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+              {filteredResults.length} résultat{filteredResults.length > 1 ? 's' : ''}
+              {selectedBook ? ` dans ${selectedBook}` : ''}
+            </Text>
           )}
           renderItem={({ item, index }) => (
             <Animated.View entering={FadeInUp.delay(index * 20).springify()}>
