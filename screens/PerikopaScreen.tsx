@@ -1,10 +1,18 @@
-import React, { useState, useMemo, memo } from 'react';
+import React, { useState, useMemo, memo, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Modal, FlatList } from 'react-native';
 import { PerikopaScreenProps } from '../navigation/types';
 import { usePerikopa } from '../context/PerikopaContext';
 import { Filter, BookOpen, ChevronDown } from 'lucide-react-native';
 import { usePerikopaNavigation } from '../hooks/usePerikopaNavigation';
 import { ActivityIndicator } from 'react-native';
+import Animated, { 
+  useAnimatedStyle, 
+  useSharedValue, 
+  withSpring,
+  Layout,
+  FadeIn
+} from 'react-native-reanimated';
+import theme from '../constants/theme';
 
 const MONTHS = [
   { id: 'JAN', name: 'Janoary' },
@@ -30,6 +38,26 @@ const PerikopaScreen = memo(({ navigation }: PerikopaScreenProps) => {
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState(2026);
   const [showYearPicker, setShowYearPicker] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
+
+  // Pour l'animation des chips
+  const indicatorX = useSharedValue(0);
+  const indicatorWidth = useSharedValue(0);
+  const [chipLayouts, setChipLayouts] = useState<{[key: string]: {x: number, width: number}}>({});
+
+  const handleMonthPress = (id: string | null, x: number, width: number) => {
+    setSelectedMonth(id);
+    indicatorX.value = withSpring(x, { damping: 15, stiffness: 300 });
+    indicatorWidth.value = withSpring(width, { damping: 15, stiffness: 300 });
+    
+    // Défiler vers la gauche pour mettre l'élément actif au début
+    scrollRef.current?.scrollTo({ x: Math.max(0, x - 16), animated: true });
+  };
+
+  const animatedIndicatorStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: indicatorX.value }],
+    width: indicatorWidth.value,
+  }));
 
   const selectedYearData = perikopa?.perikopa.find(y => y.year === selectedYear);
 
@@ -145,30 +173,59 @@ const PerikopaScreen = memo(({ navigation }: PerikopaScreenProps) => {
       {/* ══════════════════════════════════════════════════════════════════
           CHIPS MOIS
       ══════════════════════════════════════════════════════════════════ */}
-      <View className="py-4">
+      <View className="py-2 border-b border-blue-50 bg-white/50">
         <ScrollView
+          ref={scrollRef}
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerClassName="px-4 gap-2 items-center h-10"
-          style={{ height: 40, marginBottom: 4 }}
+          contentContainerClassName="px-4 py-2"
         >
-          {[{ id: null, name: 'Rehetra' }, ...MONTHS].map((item) => {
-            const isActive = selectedMonth === item.id;
-            return (
-              <TouchableOpacity
-                key={item.id ?? 'all'}
-                onPress={() => setSelectedMonth(item.id)}
-                activeOpacity={0.75}
-                className={`mx-1 rounded-full px-5 py-2 ${isActive ? 'bg-primary-600' : 'bg-background-secondary'
-                  }`}
-              >
-                <Text className={`text-[13px] font-bold ${isActive ? 'text-white' : 'text-text-tertiary'
-                  }`}>
-                  {item.name}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+          <View className="flex-row items-center">
+            {/* Indicateur animé en arrière-plan */}
+            <Animated.View 
+              style={[
+                {
+                  position: 'absolute',
+                  height: '100%',
+                  borderRadius: 99,
+                  backgroundColor: theme.colors.primary[600],
+                  zIndex: 0,
+                },
+                animatedIndicatorStyle
+              ]}
+            />
+
+            {[{ id: null, name: 'Rehetra' }, ...MONTHS].map((item) => {
+              const id = item.id ?? 'all';
+              const isActive = selectedMonth === item.id;
+              
+              return (
+                <TouchableOpacity
+                  key={id}
+                  onPress={() => {
+                    const layout = chipLayouts[id];
+                    if (layout) handleMonthPress(item.id, layout.x, layout.width);
+                  }}
+                  onLayout={(e) => {
+                    const { x, width } = e.nativeEvent.layout;
+                    setChipLayouts(prev => ({ ...prev, [id]: { x, width } }));
+                    // Initialiser l'indicateur si c'est l'élément actif au montage
+                    if (isActive && indicatorWidth.value === 0) {
+                      indicatorX.value = x;
+                      indicatorWidth.value = width;
+                    }
+                  }}
+                  activeOpacity={0.8}
+                  className="mx-1 rounded-full px-5 py-2.5"
+                  style={{ zIndex: 1 }}
+                >
+                  <Text className={`text-[13px] font-bold transition-colors duration-200 ${isActive ? 'text-white' : 'text-text-tertiary'}`}>
+                    {item.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </ScrollView>
       </View>
       {/* ══════════════════════════════════════════════════════════════════

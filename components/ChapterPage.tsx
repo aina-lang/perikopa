@@ -53,36 +53,36 @@ const VerseRow = memo(({
 }: VerseRowProps) => {
 
   // ── Couleurs de fond dynamiques ───────────────────────────────────────────
-  let rowBg          = 'transparent';
-  let borderLeft     = 3;
-  let borderColor    = 'transparent';
-  let borderWidth    = 0;
+  let rowBg = 'transparent';
+  let borderLeft = 3;
+  let borderColor = 'transparent';
+  let borderWidth = 0;
 
   if (isSelected) {
-    rowBg         = theme.tokens.reader.verseSelectedBg;
-    borderColor   = theme.tokens.reader.verseSelectedBorder;
-    borderWidth   = 1;
-    borderLeft    = 4;
+    rowBg = theme.tokens.reader.verseSelectedBg;
+    borderColor = theme.tokens.reader.verseSelectedBorder;
+    borderWidth = 1;
+    borderLeft = 4;
   } else if (isTarget) {
-    rowBg         = theme.tokens.reader.perikopaHighlight;
-    borderColor   = theme.colors.gold[600];
-    borderWidth   = 1;
-    borderLeft    = 4;
+    rowBg = theme.tokens.reader.perikopaHighlight;
+    borderColor = theme.colors.gold[600];
+    borderWidth = 1;
+    borderLeft = 4;
   } else if (isMarked) {
-    rowBg         = theme.colors.emerald[50] ?? '#ECFDF5';
-    borderColor   = theme.tokens.reader.bookmarkActive;
-    borderWidth   = 1;
-    borderLeft    = 3;
+    rowBg = theme.colors.emerald[50] ?? '#ECFDF5';
+    borderColor = theme.tokens.reader.bookmarkActive;
+    borderWidth = 1;
+    borderLeft = 3;
   }
 
   const numberSize = Math.max(11, fontSize * 0.72);
-  const lineH      = fontSize * theme.typography.lineHeight.normal;
+  const lineH = fontSize * theme.typography.lineHeight.normal;
 
   // ── Texte avec surlignage recherche ─────────────────────────────────────
   const renderText = () => {
     if (searchQuery && isTarget) {
       const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const parts   = item.votoatiny.split(new RegExp(`(${escaped})`, 'gi'));
+      const parts = item.votoatiny.split(new RegExp(`(${escaped})`, 'gi'));
       return (
         <Text className="text-text-primary" style={{ fontSize, lineHeight: lineH, fontFamily: theme.typography.fontVerset }}>
           {parts.map((part, i) =>
@@ -111,10 +111,8 @@ const VerseRow = memo(({
   return (
     <Animated.View
       entering={FadeInDown
-        .delay(index * theme.animation.stagger.delayMs)
-        .springify()
-        .damping(theme.animation.spring.damping)
-        .stiffness(theme.animation.spring.stiffness)
+        .delay(Math.min(index * 15, 300)) // Cap le délai total
+        .duration(200)
       }
       className="mb-0.5"
     >
@@ -122,7 +120,7 @@ const VerseRow = memo(({
       {item.lohateny ? (
         <View className="flex-row items-center mt-7 mb-4 px-1 gap-2.5">
           <View className="flex-1 h-[0.5px] bg-primary-200 opacity-60" />
-          <Text 
+          <Text
             className="font-semibold tracking-[2px] uppercase text-text-tertiary text-center"
             style={{ fontSize: Math.max(12, fontSize * 0.75) }}
           >
@@ -135,15 +133,15 @@ const VerseRow = memo(({
       {/* ── Rangée du verset ───────────────────────────────────────────── */}
       <TouchableOpacity
         activeOpacity={0.75}
-        delayLongPress={220}
+        delayLongPress={80}
         onLongPress={() => onSelectVerse(item)}
         onPress={() => selectedVerse ? onSelectVerse(null) : null}
         className="flex-row rounded-md py-3 px-3 border-transparent"
         style={{
-            backgroundColor: rowBg,
-            borderColor,
-            borderWidth,
-            borderLeftWidth: borderLeft,
+          backgroundColor: rowBg,
+          borderColor,
+          borderWidth,
+          borderLeftWidth: borderLeft,
         }}
       >
         {/* Numéro */}
@@ -191,9 +189,9 @@ const ChapterPage = ({
   fontSize,
 }: ChapterPageProps) => {
   const { getVerses } = useBible();
-  const [verses, setVerses]   = useState<Andininy[]>([]);
+  const [verses, setVerses] = useState<Andininy[]>([]);
   const [loading, setLoading] = useState(true);
-  const flatListRef           = useRef<FlatList<Andininy>>(null);
+  const flatListRef = useRef<FlatList<Andininy>>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -248,7 +246,7 @@ const ChapterPage = ({
         ItemSeparatorComponent={() => <View className="h-0 bg-transparent" />}
         renderItem={({ item, index }) => {
           const isSelected = selectedVerse?.id === item.id;
-          const isMarked   = bookmarks.some(
+          const isMarked = bookmarks.some(
             b =>
               b.boky.slug === boky.slug &&
               b.andininy.toko === toko &&

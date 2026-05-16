@@ -15,7 +15,13 @@ import { useBible } from '../hooks/useBible';
 import { useSearchHistory } from '../hooks/useSearchHistory';
 import { Andininy, Boky } from '../services/database';
 import { Search, X, BookOpen, Clock, Trash2 } from 'lucide-react-native';
-import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
+import Animated, { 
+  FadeInUp, 
+  FadeInDown, 
+  useAnimatedStyle, 
+  useSharedValue, 
+  withSpring 
+} from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
@@ -40,6 +46,25 @@ export default function SearchScreen({ }: SearchScreenProps) {
 
   const inputRef    = useRef<TextInput>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollRef    = useRef<ScrollView>(null);
+
+  // Pour l'animation des chips
+  const indicatorX = useSharedValue(0);
+  const indicatorWidth = useSharedValue(0);
+  const [chipLayouts, setChipLayouts] = useState<{[key: string]: {x: number, width: number}}>({});
+
+  const handleBookPress = (bookName: string | null, x: number, width: number) => {
+    setSelectedBook(bookName);
+    indicatorX.value = withSpring(x, { damping: 15, stiffness: 300 });
+    indicatorWidth.value = withSpring(width, { damping: 15, stiffness: 300 });
+    
+    scrollRef.current?.scrollTo({ x: Math.max(0, x - 16), animated: true });
+  };
+
+  const animatedIndicatorStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: indicatorX.value }],
+    width: indicatorWidth.value,
+  }));
 
   // ── Chargement des livres ─────────────────────────────────────────────
   useEffect(() => {
@@ -184,48 +209,88 @@ export default function SearchScreen({ }: SearchScreenProps) {
       {/* ══════════════════════════════════════════════════════════════
           CHIPS FILTRES LIVRES — toujours visible
       ══════════════════════════════════════════════════════════════ */}
-      <View style={{ height: 52 }} className="border-b border-background-tertiary bg-background-primary">
+      <View style={{ height: 56 }} className="border-b border-background-tertiary bg-background-primary/50">
         <ScrollView
+          ref={scrollRef}
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 16, gap: 8, alignItems: 'center', height: 52 }}
-          style={{ height: 52 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 10 }}
         >
-          {/* Chip "Tous" */}
-          <TouchableOpacity
-            onPress={() => setSelectedBook(null)}
-            className={`rounded-full px-4 py-2 ${
-              selectedBook === null ? 'bg-primary-600' : 'bg-background-secondary'
-            }`}
-          >
-            <Text className={`text-xs font-bold ${
-              selectedBook === null ? 'text-white' : 'text-text-tertiary'
-            }`}>
-              Tous{results.length > 0 ? ` (${results.length})` : ''}
-            </Text>
-          </TouchableOpacity>
+          <View className="flex-row items-center">
+            {/* Indicateur animé en arrière-plan */}
+            <Animated.View 
+              style={[
+                {
+                  position: 'absolute',
+                  height: '100%',
+                  borderRadius: 99,
+                  backgroundColor: theme.colors.primary[600],
+                  zIndex: 0,
+                },
+                animatedIndicatorStyle
+              ]}
+            />
 
-          {/* Chips tous les livres — toujours affichés */}
-          {books.map((b) => {
-            const count = bookCounts.get(b.anarana) || 0;
-            const isActive = selectedBook === b.anarana;
-            const hasResults = searched && count > 0;
-            return (
-              <TouchableOpacity
-                key={b.slug}
-                onPress={() => setSelectedBook(isActive ? null : b.anarana)}
-                className={`rounded-full px-4 py-2 ${
-                  isActive ? 'bg-primary-600' : 'bg-background-secondary'
-                }`}
-              >
-                <Text className={`text-xs font-bold ${
-                  isActive ? 'text-white' : 'text-text-tertiary'
-                }`}>
-                  {b.anarana}{hasResults ? ` (${count})` : ''}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+            {/* Chip "Tous" */}
+            <TouchableOpacity
+              onPress={() => {
+                const layout = chipLayouts['all'];
+                if (layout) handleBookPress(null, layout.x, layout.width);
+              }}
+              onLayout={(e) => {
+                const { x, width } = e.nativeEvent.layout;
+                setChipLayouts(prev => ({ ...prev, all: { x, width } }));
+                if (selectedBook === null && indicatorWidth.value === 0) {
+                  indicatorX.value = x;
+                  indicatorWidth.value = width;
+                }
+              }}
+              activeOpacity={0.8}
+              className="mx-1 rounded-full px-5 py-2.5"
+              style={{ zIndex: 1 }}
+            >
+              <Text className={`text-[13px] font-bold transition-colors duration-200 ${
+                selectedBook === null ? 'text-white' : 'text-text-tertiary'
+              }`}>
+                Tous{results.length > 0 ? ` (${results.length})` : ''}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Chips tous les livres */}
+            {books.map((b) => {
+              const count = bookCounts.get(b.anarana) || 0;
+              const isActive = selectedBook === b.anarana;
+              const hasResults = searched && count > 0;
+              const id = b.slug;
+              
+              return (
+                <TouchableOpacity
+                  key={id}
+                  onPress={() => {
+                    const layout = chipLayouts[id];
+                    if (layout) handleBookPress(b.anarana, layout.x, layout.width);
+                  }}
+                  onLayout={(e) => {
+                    const { x, width } = e.nativeEvent.layout;
+                    setChipLayouts(prev => ({ ...prev, [id]: { x, width } }));
+                    if (isActive && indicatorWidth.value === 0) {
+                      indicatorX.value = x;
+                      indicatorWidth.value = width;
+                    }
+                  }}
+                  activeOpacity={0.8}
+                  className="mx-1 rounded-full px-5 py-2.5"
+                  style={{ zIndex: 1 }}
+                >
+                  <Text className={`text-[13px] font-bold transition-colors duration-200 ${
+                    isActive ? 'text-white' : 'text-text-tertiary'
+                  }`}>
+                    {b.anarana}{hasResults ? ` (${count})` : ''}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </ScrollView>
       </View>
 

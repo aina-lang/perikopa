@@ -122,7 +122,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             PROCHAINE PERIKOPA — Card Premium
         ══════════════════════════════════════════════════════════════ */}
         <Animated.View entering={FadeInDown.delay(100).duration(600).springify()} className="mb-6 overflow-hidden rounded-[28px] bg-white border border-primary-100 shadow-xl shadow-primary-900/10">
-          <View className="bg-primary-600 px-5 py-3.5 flex-row items-center justify-between">
+          <View className="bg-primary-800 px-5 py-3.5 flex-row items-center justify-between">
             <View className="flex-row items-center gap-2">
               <Calendar size={16} color="white" strokeWidth={2.5} />
               <Text className="text-[11px] font-black uppercase tracking-[1.5px] text-white/90">Manaraka</Text>

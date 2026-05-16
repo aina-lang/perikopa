@@ -8,6 +8,7 @@ import {
   FlatList,
   Dimensions,
   Text,
+  Share,
 } from 'react-native';
 import { ReaderScreenProps } from '../navigation/types';
 import { useBible } from '../hooks/useBible';
@@ -43,18 +44,18 @@ const { width } = Dimensions.get('window');
 
 // ─── Hauteurs fixes ────────────────────────────────────────────────────────────
 const SLIDER_BAR_HEIGHT = 64;   // barre du slider en bas
-const FAB_BOTTOM        = SLIDER_BAR_HEIGHT + 16; // FAB juste au-dessus du slider
+const FAB_BOTTOM = SLIDER_BAR_HEIGHT + 16; // FAB juste au-dessus du slider
 
 export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
   const { boky, toko, targetVerse, targetVerseEnd, targetVerseId, searchQuery } = route.params;
   const { getAllChaptersFlattened } = useBible();
   const { addBookmark, removeBookmark, isBookmarked, bookmarks } = useBookmarks();
 
-  const [allChapters, setAllChapters]   = useState<FlattenedChapter[]>([]);
-  const [loading, setLoading]           = useState(true);
+  const [allChapters, setAllChapters] = useState<FlattenedChapter[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedVerse, setSelectedVerse] = useState<Andininy | null>(null);
-  const [currentIndex, setCurrentIndex]  = useState(-1);
-  const [zoomLevel, setZoomLevel]        = useState(50);
+  const [currentIndex, setCurrentIndex] = useState(-1);
+  const [zoomLevel, setZoomLevel] = useState(50);
 
   const flatListRef = useRef<FlatList<FlattenedChapter>>(null);
 
@@ -67,7 +68,7 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
     getAllChaptersFlattened().then((data) => {
       setAllChapters(data);
 
-      const idx     = data.findIndex(c => c.boky.slug === boky.slug && c.toko === toko);
+      const idx = data.findIndex(c => c.boky.slug === boky.slug && c.toko === toko);
       const safeIdx = Math.max(0, idx);
       setCurrentIndex(safeIdx);
 
@@ -133,6 +134,21 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
     }
   };
 
+  const handleShare = async () => {
+    const current = allChapters[currentIndex];
+    if (selectedVerse && current) {
+      const textToShare = `${formatBookName(current.boky.anarana)} ${current.index}:${selectedVerse.laharana} - ${selectedVerse.votoatiny}`;
+      try {
+        await Share.share({
+          message: textToShare,
+        });
+        setSelectedVerse(null);
+      } catch (error) {
+        console.error('Erreur de partage:', error);
+      }
+    }
+  };
+
   // ─── Loading ──────────────────────────────────────────────────────────────────
   if (loading || currentIndex === -1) {
     return (
@@ -143,7 +159,7 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
     );
   }
 
-  const current         = allChapters[currentIndex];
+  const current = allChapters[currentIndex];
   const verseIsBookmarked = selectedVerse && current
     ? isBookmarked(current.boky.slug, current.toko, selectedVerse.laharana)
     : false;
@@ -182,7 +198,7 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
         contentContainerStyle={{ paddingBottom: 0 }}
         renderItem={({ item, index }) => {
           const isTargetChapter = item.boky.slug === boky.slug && item.toko === toko;
-          const isActive        = Math.abs(index - currentIndex) <= 2;
+          const isActive = Math.abs(index - currentIndex) <= 2;
           return (
             <View style={{ width, flex: 1, paddingBottom: SLIDER_BAR_HEIGHT + 8 }}>
               <ChapterPage
@@ -206,7 +222,8 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
       {/* ── FAB (actions verset sélectionné) ─────────────────────────────── */}
       {selectedVerse && (
         <Animated.View
-          entering={FadeInDown.springify().damping(theme.animation.spring.damping).stiffness(theme.animation.spring.stiffness)}
+          entering={FadeInDown.duration(150)}
+          exiting={FadeOutDown.duration(120)}
           className="absolute left-5 right-5 z-[100] shadow-lg shadow-primary-800/20"
           style={{ bottom: FAB_BOTTOM, elevation: 12 }}
         >
@@ -230,7 +247,7 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
               <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: verseIsBookmarked ? 'rgba(5,150,105,0.08)' : 'rgba(232,197,71,0.08)' }}>
                 {verseIsBookmarked
                   ? <BookmarkMinus size={20} color={theme.tokens.fab.shareBtn} />
-                  : <BookmarkPlus  size={20} color={theme.tokens.fab.bookmarkBtn} />
+                  : <BookmarkPlus size={20} color={theme.tokens.fab.bookmarkBtn} />
                 }
               </View>
               <Text className="text-[11px] font-bold" style={{ color: verseIsBookmarked ? theme.tokens.fab.shareBtn : theme.tokens.fab.bookmarkBtn }}>
@@ -242,7 +259,7 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
             <View className="w-[0.5px] h-12 bg-background-tertiary" />
 
             {/* Partager */}
-            <TouchableOpacity onPress={() => {}} className="flex-1 items-center justify-center gap-1.5" activeOpacity={0.7}>
+            <TouchableOpacity onPress={handleShare} className="flex-1 items-center justify-center gap-1.5" activeOpacity={0.7}>
               <View className="w-12 h-12 rounded-full items-center justify-center bg-emerald-50">
                 <Share2 size={20} color={theme.tokens.fab.shareBtn} />
               </View>
@@ -262,15 +279,15 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
             {/* Ticks/Dots behind the slider */}
             <View style={{ position: 'absolute', left: 10, right: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               {[...Array(10)].map((_, i) => (
-                <View 
-                  key={i} 
-                  style={{ 
-                    width: 4, 
-                    height: 4, 
-                    borderRadius: 2, 
+                <View
+                  key={i}
+                  style={{
+                    width: 4,
+                    height: 4,
+                    borderRadius: 2,
                     backgroundColor: theme.colors.primary[200],
                     opacity: 0.8
-                  }} 
+                  }}
                 />
               ))}
             </View>
