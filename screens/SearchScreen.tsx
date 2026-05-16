@@ -7,15 +7,16 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Keyboard,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SearchScreenProps } from '../navigation/types';
 import { useBible } from '../hooks/useBible';
 import { useSearchHistory } from '../hooks/useSearchHistory';
 import { Andininy, Boky } from '../services/database';
-import { Search, X, BookOpen, Clock, Trash2, Filter } from 'lucide-react-native';
+import { Search, X, BookOpen, Clock, Trash2 } from 'lucide-react-native';
 import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
-import { ScrollView } from 'react-native';
+import theme from '../constants/theme';
 
 type SearchResult = Andininy & { bookName: string };
 
@@ -94,13 +95,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     : results;
 
   const highlightText = (text: string, q: string) => {
-    if (!q.trim()) return <Text className="text-base leading-relaxed text-slate-700">{text}</Text>;
+    if (!q.trim()) return <Text className="text-base leading-relaxed text-text-secondary">{text}</Text>;
     const parts = text.split(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
     return (
-      <Text className="text-base leading-relaxed text-slate-700">
+      <Text className="text-base leading-relaxed text-text-secondary">
         {parts.map((part, i) =>
           part.toLowerCase() === q.toLowerCase() ? (
-            <Text key={i} className="font-bold" style={{ color: '#1e3a8a', backgroundColor: '#fef08a' }}>
+            <Text key={i} className="font-bold bg-gold-200" style={{ color: theme.colors.primary[600] }}>
               {part}
             </Text>
           ) : (
@@ -112,45 +113,45 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   };
 
   return (
-    <SafeAreaView edges={['bottom']} className="flex-1 bg-slate-50">
+    <SafeAreaView edges={['bottom']} className="flex-1 bg-background-primary">
+      {/* ── Blobs décoratifs ──────────────────────────────────────────── */}
+      <View className="absolute inset-0" pointerEvents="none">
+        <View className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-primary-600 opacity-[0.07]" />
+        <View className="absolute -bottom-15 -left-20 w-60 h-60 rounded-full bg-emerald-500 opacity-[0.06]" />
+      </View>
+
       {/* Search Bar */}
-      <View className="bg-white px-4 pb-4 pt-2"
-        style={{ borderBottomWidth: 1, borderBottomColor: '#e2e8f0' }}
-      >
-        <View
-          className="flex-row items-center rounded-2xl bg-slate-100 px-4"
-          style={{ borderWidth: 2, borderColor: '#1e3a8a' }}
-        >
-          <Search size={20} color="#1e3a8a" />
+      <View className="bg-background-primary px-4 pb-4 pt-2 border-b border-background-tertiary">
+        <View className="flex-row items-center rounded-2xl bg-background-secondary px-4 border-2 border-primary-600">
+          <Search size={20} color={theme.colors.primary[600]} />
           <TextInput
             ref={inputRef}
             value={query}
             onChangeText={handleSearch}
             onFocus={() => { if (!query) setShowHistory(true); }}
             placeholder="Rechercher un verset, une phrase..."
-            placeholderTextColor="#94a3b8"
-            className="flex-1 py-3 pl-3 text-base text-slate-800"
+            placeholderTextColor={theme.colors.text.tertiary}
+            className="flex-1 py-3 pl-3 text-base text-text-primary"
             autoFocus
             returnKeyType="search"
             onSubmitEditing={() => { runSearch(query); Keyboard.dismiss(); }}
           />
           {query.length > 0 && (
             <TouchableOpacity onPress={clearSearch} className="p-1">
-              <X size={18} color="#94a3b8" />
+              <X size={18} color={theme.colors.text.tertiary} />
             </TouchableOpacity>
           )}
         </View>
       </View>
 
       {/* Book filter chips - always visible */}
-      <View className="bg-white pb-2 pt-1" style={{ borderBottomWidth: 1, borderBottomColor: '#e2e8f0' }}>
+      <View className="bg-background-primary pb-2 pt-1 border-b border-background-tertiary">
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12 }}>
           <TouchableOpacity
             onPress={() => setSelectedBook(null)}
-            className="mx-1 rounded-full px-4 py-2"
-            style={{ backgroundColor: selectedBook === null ? '#1e3a8a' : '#f1f5f9' }}
+            className={`mx-1 rounded-full px-4 py-2 ${selectedBook === null ? 'bg-primary-600' : 'bg-background-secondary'}`}
           >
-            <Text className="text-xs font-bold" style={{ color: selectedBook === null ? '#fff' : '#64748b' }}>
+            <Text className={`text-xs font-bold ${selectedBook === null ? 'text-white' : 'text-text-tertiary'}`}>
               Tous{results.length > 0 ? ` (${results.length})` : ''}
             </Text>
           </TouchableOpacity>
@@ -161,10 +162,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               <TouchableOpacity
                 key={b.slug}
                 onPress={() => setSelectedBook(isActive ? null : b.anarana)}
-                className="mx-1 rounded-full px-3 py-2"
-                style={{ backgroundColor: isActive ? '#1e3a8a' : '#f1f5f9' }}
+                className={`mx-1 rounded-full px-3 py-2 ${isActive ? 'bg-primary-600' : 'bg-background-secondary'}`}
               >
-                <Text className="text-xs font-bold" style={{ color: isActive ? '#fff' : '#64748b' }}>
+                <Text className={`text-xs font-bold ${isActive ? 'text-white' : 'text-text-tertiary'}`}>
                   {b.anarana}{count > 0 ? ` (${count})` : ''}
                 </Text>
               </TouchableOpacity>
@@ -175,29 +175,28 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
       {/* History Panel */}
       {showHistory && history.length > 0 && (
-        <Animated.View entering={FadeInDown.springify()} className="bg-white border-b border-slate-100">
+        <Animated.View entering={FadeInDown.springify()} className="bg-background-primary border-b border-background-tertiary">
           <View className="flex-row items-center justify-between px-4 pb-2 pt-3">
-            <Text className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <Text className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">
               Recherches récentes
             </Text>
             <TouchableOpacity onPress={clearHistory} className="flex-row items-center gap-1 p-1">
-              <Trash2 size={14} color="#94a3b8" />
-              <Text className="text-xs text-slate-400">Tout effacer</Text>
+              <Trash2 size={14} color={theme.colors.text.tertiary} />
+              <Text className="text-xs text-text-tertiary">Tout effacer</Text>
             </TouchableOpacity>
           </View>
           {history.map((h, i) => (
             <Animated.View key={h} entering={FadeInUp.delay(i * 30).springify()}>
               <TouchableOpacity
                 onPress={() => selectFromHistory(h)}
-                className="flex-row items-center justify-between px-4 py-3"
-                style={{ borderTopWidth: i === 0 ? 0 : 1, borderTopColor: '#f1f5f9' }}
+                className={`flex-row items-center justify-between px-4 py-3 ${i === 0 ? '' : 'border-t border-background-tertiary'}`}
               >
                 <View className="flex-row items-center gap-3">
-                  <Clock size={16} color="#94a3b8" />
-                  <Text className="text-base text-slate-700">{h}</Text>
+                  <Clock size={16} color={theme.colors.text.tertiary} />
+                  <Text className="text-base text-text-secondary">{h}</Text>
                 </View>
                 <TouchableOpacity onPress={() => removeFromHistory(h)} className="p-1">
-                  <X size={16} color="#cbd5e1" />
+                  <X size={16} color={theme.colors.text.tertiary} />
                 </TouchableOpacity>
               </TouchableOpacity>
             </Animated.View>
@@ -208,19 +207,19 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       {/* Loading */}
       {loading && (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#1e3a8a" />
-          <Text className="mt-3 text-sm text-slate-500">Recherche en cours...</Text>
+          <ActivityIndicator size="large" color={theme.colors.primary[600]} />
+          <Text className="mt-3 text-sm text-text-tertiary">Recherche en cours...</Text>
         </View>
       )}
 
       {/* Empty state before search */}
       {!loading && !searched && !showHistory && (
         <View className="flex-1 items-center justify-center p-8">
-          <Search size={56} color="#cbd5e1" />
-          <Text className="mt-4 text-center text-lg font-semibold text-slate-400">
+          <Search size={56} color={theme.colors.primary[100]} />
+          <Text className="mt-4 text-center text-lg font-semibold text-text-tertiary">
             Rechercher dans la Bible
           </Text>
-          <Text className="mt-2 text-center text-sm text-slate-400">
+          <Text className="mt-2 text-center text-sm text-text-tertiary">
             Tapez au moins 2 caractères pour commencer
           </Text>
         </View>
@@ -229,11 +228,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       {/* Empty state - no history, no search */}
       {!loading && !searched && showHistory && history.length === 0 && (
         <View className="flex-1 items-center justify-center p-8">
-          <Search size={56} color="#cbd5e1" />
-          <Text className="mt-4 text-center text-lg font-semibold text-slate-400">
+          <Search size={56} color={theme.colors.primary[100]} />
+          <Text className="mt-4 text-center text-lg font-semibold text-text-tertiary">
             Rechercher dans la Bible
           </Text>
-          <Text className="mt-2 text-center text-sm text-slate-400">
+          <Text className="mt-2 text-center text-sm text-text-tertiary">
             Tapez au moins 2 caractères pour commencer
           </Text>
         </View>
@@ -242,9 +241,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       {/* No results */}
       {!loading && searched && results.length === 0 && (
         <View className="flex-1 items-center justify-center p-8">
-          <BookOpen size={56} color="#cbd5e1" />
-          <Text className="mt-4 text-center text-lg font-semibold text-slate-400">Aucun résultat</Text>
-          <Text className="mt-2 text-center text-sm text-slate-400">Essayez d'autres mots-clés</Text>
+          <BookOpen size={56} color={theme.colors.primary[100]} />
+          <Text className="mt-4 text-center text-lg font-semibold text-text-tertiary">Aucun résultat</Text>
+          <Text className="mt-2 text-center text-sm text-text-tertiary">Essayez d'autres mots-clés</Text>
         </View>
       )}
 
@@ -255,7 +254,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           keyExtractor={(item) => item.id.toString()}
           contentContainerClassName="p-4 pb-12"
           ListHeaderComponent={() => (
-            <Text className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <Text className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-tertiary">
               {filteredResults.length} résultat{filteredResults.length > 1 ? 's' : ''}
               {selectedBook ? ` dans ${selectedBook}` : ''}
             </Text>
@@ -277,14 +276,14 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                     targetVerse: item.laharana,
                     targetVerseId: item.id,
                     searchQuery: query,
-                  });
+                  },);
                 }}
-                className="mb-3 rounded-2xl bg-white p-4"
-                style={{ shadowColor: '#93c5fd', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.5, shadowRadius: 2, elevation: 2 }}
+                className="mb-3 rounded-2xl bg-background-primary p-4 shadow-sm shadow-primary-600/10 border border-background-tertiary"
+                style={{ elevation: 2 }}
               >
                 <View className="mb-2 flex-row items-center">
-                  <View className="rounded-lg px-2 py-1" style={{ backgroundColor: '#dbeafe' }}>
-                    <Text className="text-xs font-bold" style={{ color: '#1e3a8a' }}>
+                  <View className="rounded-lg px-2 py-1 bg-primary-100">
+                    <Text className="text-xs font-bold text-primary-600">
                       {item.bookName} {item.toko}:{item.laharana}
                     </Text>
                   </View>

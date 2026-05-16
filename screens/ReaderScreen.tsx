@@ -1,15 +1,28 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, ActivityIndicator, TouchableOpacity, Text, ToastAndroid, Platform, FlatList, Dimensions } from 'react-native';
+import {
+  View,
+  ActivityIndicator,
+  TouchableOpacity,
+  ToastAndroid,
+  Platform,
+  FlatList,
+  Dimensions,
+  Text,
+} from 'react-native';
 import { ReaderScreenProps } from '../navigation/types';
 import { useBible } from '../hooks/useBible';
 import ChapterPage from '../components/ChapterPage';
 import { Andininy, Boky } from '../services/database';
-import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
-import { Copy, BookmarkPlus, BookmarkMinus, Share2 } from 'lucide-react-native';
+import Animated, {
+  FadeInDown,
+  FadeOutDown,
+} from 'react-native-reanimated';
+import { Copy, BookmarkPlus, BookmarkMinus, Share2, Type } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useBookmarks } from '../hooks/useBookmarks';
 import { BlurView } from 'expo-blur';
-import { theme } from '../constants/theme';
+import theme from '../constants/theme';
+import Slider from '@react-native-community/slider';
 
 interface FlattenedChapter {
   boky: Boky;
@@ -26,41 +39,43 @@ const formatBookName = (name: string) => {
   return name;
 };
 
+const { width } = Dimensions.get('window');
+
+// ─── Hauteurs fixes ────────────────────────────────────────────────────────────
+const SLIDER_BAR_HEIGHT = 64;   // barre du slider en bas
+const FAB_BOTTOM        = SLIDER_BAR_HEIGHT + 16; // FAB juste au-dessus du slider
+
 export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
   const { boky, toko, targetVerse, targetVerseEnd, targetVerseId, searchQuery } = route.params;
   const { getAllChaptersFlattened } = useBible();
   const { addBookmark, removeBookmark, isBookmarked, bookmarks } = useBookmarks();
-  
-  const [allChapters, setAllChapters] = useState<FlattenedChapter[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  const [allChapters, setAllChapters]   = useState<FlattenedChapter[]>([]);
+  const [loading, setLoading]           = useState(true);
   const [selectedVerse, setSelectedVerse] = useState<Andininy | null>(null);
-  const [currentIndex, setCurrentIndex] = useState(-1);
-  const { width } = Dimensions.get('window');
-  
+  const [currentIndex, setCurrentIndex]  = useState(-1);
+  const [zoomLevel, setZoomLevel]        = useState(50);
+
   const flatListRef = useRef<FlatList<FlattenedChapter>>(null);
 
+  // fontSize : 14px (zoom=10) → 32px (zoom=100)
+  const calculatedFontSize = 14 + ((zoomLevel - 10) / 90) * 18;
+
+  // ─── Chargement des chapitres ─────────────────────────────────────────────────
   useEffect(() => {
     setSelectedVerse(null);
     getAllChaptersFlattened().then((data) => {
       setAllChapters(data);
-      
-      const idx = data.findIndex(c => c.boky.slug === boky.slug && c.toko === toko);
+
+      const idx     = data.findIndex(c => c.boky.slug === boky.slug && c.toko === toko);
       const safeIdx = Math.max(0, idx);
-      
       setCurrentIndex(safeIdx);
-      
+
       const item = data[safeIdx];
-      if (item) {
-        navigation.setOptions({ 
-          title: `${formatBookName(item.boky.anarana)} ${item.index}`,
-          headerStyle: { backgroundColor: theme.colors.background },
-          headerTintColor: theme.colors.textPrimary,
-          headerShadowVisible: false,
-        });
-      }
-      
+      if (item) updateHeader(item);
+
       setLoading(false);
-      
+
       if (safeIdx >= 0) {
         setTimeout(() => {
           flatListRef.current?.scrollToIndex({ index: safeIdx, animated: false });
@@ -69,6 +84,23 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
     });
   }, [getAllChaptersFlattened]);
 
+  const updateHeader = (item: FlattenedChapter) => {
+    navigation.setOptions({
+      title: `${formatBookName(item.boky.anarana)} ${item.index}`,
+      headerStyle: {
+        backgroundColor: '#F0F7FF',
+      },
+      headerTintColor:      theme.tokens.header.title,
+      headerShadowVisible:  false,
+      headerTitleStyle: {
+        fontWeight: '600',
+        fontSize:   17,
+        color:      theme.tokens.header.title,
+      },
+    });
+  };
+
+  // ─── Viewability ──────────────────────────────────────────────────────────────
   const viewabilityConfig = useRef({
     viewAreaCoveragePercentThreshold: 50,
   }).current;
@@ -79,27 +111,19 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
       if (newIndex !== null && newIndex !== undefined) {
         setCurrentIndex(newIndex);
         const item = allChapters[newIndex];
-        if (item) {
-          navigation.setOptions({ 
-            title: `${formatBookName(item.boky.anarana)} ${item.index}`,
-            headerStyle: { backgroundColor: theme.colors.background },
-            headerTintColor: theme.colors.textPrimary,
-            headerShadowVisible: false,
-          });
-        }
+        if (item) updateHeader(item);
         setSelectedVerse(null);
       }
     }
   }).current;
 
+  // ─── Actions ──────────────────────────────────────────────────────────────────
   const handleCopy = async () => {
     const current = allChapters[currentIndex];
     if (selectedVerse && current) {
       const textToCopy = `${formatBookName(current.boky.anarana)} ${current.index}:${selectedVerse.laharana} - ${selectedVerse.votoatiny}`;
       await Clipboard.setStringAsync(textToCopy);
-      if (Platform.OS === 'android') {
-        ToastAndroid.show('Verset copié', ToastAndroid.SHORT);
-      }
+      if (Platform.OS === 'android') ToastAndroid.show('Verset copié', ToastAndroid.SHORT);
       setSelectedVerse(null);
     }
   };
@@ -112,34 +136,39 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
         removeBookmark(`${current.boky.slug}-${current.toko}-${selectedVerse.laharana}`);
         if (Platform.OS === 'android') ToastAndroid.show('Marque supprimée', ToastAndroid.SHORT);
       } else {
-        const verseWithToko = { ...selectedVerse, toko: current.toko };
-        addBookmark(current.boky, verseWithToko);
+        addBookmark(current.boky, { ...selectedVerse, toko: current.toko });
         if (Platform.OS === 'android') ToastAndroid.show('Verset marqué', ToastAndroid.SHORT);
       }
       setSelectedVerse(null);
     }
   };
 
+  // ─── Loading ──────────────────────────────────────────────────────────────────
   if (loading || currentIndex === -1) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" color="#1e3a8a" />
+      <View className="flex-1 items-center justify-center bg-background-primary gap-3">
+        <ActivityIndicator size="large" color={theme.colors.primary[600]} />
+        <Text className="text-sm text-text-secondary mt-2">Chargement...</Text>
       </View>
     );
   }
 
-  const current = allChapters[currentIndex];
-  const verseIsBookmarked = selectedVerse && current ? isBookmarked(current.boky.slug, current.toko, selectedVerse.laharana) : false;
+  const current         = allChapters[currentIndex];
+  const verseIsBookmarked = selectedVerse && current
+    ? isBookmarked(current.boky.slug, current.toko, selectedVerse.laharana)
+    : false;
 
   return (
-    <View className="flex-1" style={{ backgroundColor: theme.colors.background }}>
-      {/* Mesh Gradient Background Approximation */}
-      <View className="absolute inset-0 overflow-hidden" pointerEvents="none">
-        <View className="absolute -top-32 -left-32 h-96 w-96 rounded-full opacity-10" style={{ backgroundColor: theme.colors.primary, transform: [{ scale: 1.5 }] }} />
-        <View className="absolute -right-32 top-1/2 h-96 w-96 rounded-full opacity-10" style={{ backgroundColor: theme.colors.secondary, transform: [{ scale: 1.5 }] }} />
-        <View className="absolute -bottom-32 left-1/4 h-96 w-96 rounded-full opacity-10" style={{ backgroundColor: '#8B5CF6', transform: [{ scale: 1.5 }] }} />
+    <View className="flex-1 bg-background-primary">
+
+      {/* ── Mesh Gradient blobs ────────────────────────────────────────────── */}
+      <View className="absolute inset-0" pointerEvents="none">
+        <View className="absolute -top-[100px] -left-[100px] w-80 h-80 rounded-full bg-primary-600 opacity-[0.07] scale-[1.4]" />
+        <View className="absolute top-[40%] -right-[100px] w-80 h-80 rounded-full bg-emerald-500 opacity-[0.06] scale-[1.3]" />
+        <View className="absolute bottom-15 left-[20%] w-80 h-80 rounded-full bg-gold-500 opacity-[0.07] scale-[1.2]" />
       </View>
 
+      {/* ── FlatList horizontale ──────────────────────────────────────────── */}
       <FlatList
         ref={flatListRef}
         data={allChapters}
@@ -158,16 +187,17 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
         windowSize={5}
         maxToRenderPerBatch={3}
         initialNumToRender={3}
-        removeClippedSubviews={true}
+        removeClippedSubviews
+        // Laisse de la place en bas pour le slider
+        contentContainerStyle={{ paddingBottom: 0 }}
         renderItem={({ item, index }) => {
           const isTargetChapter = item.boky.slug === boky.slug && item.toko === toko;
-          const isActive = Math.abs(index - currentIndex) <= 2;
-
+          const isActive        = Math.abs(index - currentIndex) <= 2;
           return (
-            <View style={{ width, flex: 1 }}>
-              <ChapterPage 
-                boky={item.boky} 
-                toko={item.toko} 
+            <View style={{ width, flex: 1, paddingBottom: SLIDER_BAR_HEIGHT + 8 }}>
+              <ChapterPage
+                boky={item.boky}
+                toko={item.toko}
                 selectedVerse={selectedVerse}
                 onSelectVerse={setSelectedVerse}
                 bookmarks={bookmarks}
@@ -176,39 +206,97 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
                 targetVerseId={isTargetChapter ? targetVerseId : undefined}
                 searchQuery={searchQuery}
                 isActive={isActive}
+                fontSize={calculatedFontSize}
               />
             </View>
           );
         }}
       />
 
-      {/* Floating Action Bar */}
+      {/* ── FAB (actions verset sélectionné) ─────────────────────────────── */}
       {selectedVerse && (
-        <Animated.View 
-          entering={FadeInDown.springify()} 
-          exiting={FadeOutDown}
-          className="absolute bottom-10 left-6 right-6 overflow-hidden rounded-[32px]"
-          style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 20, elevation: 10 }}
+        <Animated.View
+          entering={FadeInDown.springify().damping(18).stiffness(120)}
+          className="absolute left-5 right-5 z-[100] shadow-lg shadow-primary-800/20"
+          style={{ bottom: FAB_BOTTOM, elevation: 12 }}
         >
-          <BlurView intensity={40} tint="dark" className="flex-row justify-around p-4" style={{ backgroundColor: theme.colors.glassBg, borderColor: theme.colors.glassBorder, borderWidth: 1 }}>
-            <TouchableOpacity onPress={handleCopy} className="h-12 w-12 items-center justify-center rounded-full bg-white/10">
-              <Copy size={22} color={theme.colors.textPrimary} />
+          <BlurView
+            intensity={Platform.OS === 'ios' ? 80 : 0}
+            tint="light"
+            className="flex-row items-center justify-around rounded-[28px] border border-primary-200/20 py-2.5 px-2 overflow-hidden"
+            style={{
+                backgroundColor: Platform.OS === 'ios'
+                  ? theme.tokens.fab.background
+                  : 'rgba(240, 247, 255, 0.97)',
+            }}
+          >
+            {/* Copier */}
+            <TouchableOpacity onPress={handleCopy} className="flex-1 items-center justify-center gap-1.5" activeOpacity={0.7}>
+              <View className="w-12 h-12 rounded-full items-center justify-center bg-primary-600/10">
+                <Copy size={20} color={theme.tokens.fab.copyBtn} />
+              </View>
+              <Text className="text-[11px] font-medium" style={{ color: theme.tokens.fab.copyBtn }}>Copier</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={handleBookmark} className="h-12 w-12 items-center justify-center rounded-full" style={{ backgroundColor: verseIsBookmarked ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.1)' }}>
-              {verseIsBookmarked ? (
-                <BookmarkMinus size={22} color="#fca5a5" />
-              ) : (
-                <BookmarkPlus size={22} color={theme.colors.textPrimary} />
-              )}
+            {/* Divider */}
+            <View className="w-[0.5px] h-12 bg-background-tertiary" />
+
+            {/* Favori */}
+            <TouchableOpacity onPress={handleBookmark} className="flex-1 items-center justify-center gap-1.5" activeOpacity={0.7}>
+              <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: verseIsBookmarked ? 'rgba(5,150,105,0.12)' : 'rgba(232,197,71,0.12)' }}>
+                {verseIsBookmarked
+                  ? <BookmarkMinus size={20} color={theme.tokens.fab.shareBtn} />
+                  : <BookmarkPlus  size={20} color={theme.tokens.fab.bookmarkBtn} />
+                }
+              </View>
+              <Text className="text-[11px] font-medium" style={{ color: verseIsBookmarked ? theme.tokens.fab.shareBtn : theme.tokens.fab.bookmarkBtn }}>
+                {verseIsBookmarked ? 'Retirer' : 'Marquer'}
+              </Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity onPress={() => {}} className="h-12 w-12 items-center justify-center rounded-full bg-white/10">
-              <Share2 size={22} color={theme.colors.textPrimary} />
+
+            {/* Divider */}
+            <View className="w-[0.5px] h-12 bg-background-tertiary" />
+
+            {/* Partager */}
+            <TouchableOpacity onPress={() => {}} className="flex-1 items-center justify-center gap-1.5" activeOpacity={0.7}>
+              <View className="w-12 h-12 rounded-full items-center justify-center bg-emerald-500/10">
+                <Share2 size={20} color={theme.tokens.fab.shareBtn} />
+              </View>
+              <Text className="text-[11px] font-medium" style={{ color: theme.tokens.fab.shareBtn }}>Partager</Text>
             </TouchableOpacity>
           </BlurView>
         </Animated.View>
       )}
+
+      {/* ── Barre slider TOUJOURS visible en bas ─────────────────────────── */}
+      <View className="absolute bottom-0 left-0 right-0 z-[90] shadow shadow-black/5" style={{ height: SLIDER_BAR_HEIGHT, elevation: 8 }} pointerEvents="box-none">
+        <BlurView
+          intensity={Platform.OS === 'ios' ? 60 : 0}
+          tint="light"
+          className="flex-1 flex-row items-center px-4 border-t border-background-tertiary gap-2 overflow-hidden"
+          style={{
+              backgroundColor: Platform.OS === 'ios'
+                ? 'rgba(240,247,255,0.85)'
+                : 'rgba(240,247,255,0.98)',
+          }}
+        >
+          <Type size={13} color={theme.colors.primary[400]} strokeWidth={1.5} />
+          <Slider
+            className="flex-1 h-10"
+            minimumValue={10}
+            maximumValue={100}
+            step={10}
+            value={zoomLevel}
+            onValueChange={setZoomLevel}
+            minimumTrackTintColor={theme.colors.primary[600]}
+            maximumTrackTintColor={theme.colors.primary[200]}
+            thumbTintColor={theme.colors.primary[600]}
+          />
+          <Type size={20} color={theme.colors.primary[600]} strokeWidth={1.5} />
+          <Text className="text-[11px] text-text-tertiary font-medium min-w-[32px] text-right">{Math.round(calculatedFontSize)}px</Text>
+        </BlurView>
+      </View>
+
     </View>
   );
 }

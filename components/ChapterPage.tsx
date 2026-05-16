@@ -1,10 +1,17 @@
 import React, { useEffect, useState, memo, useRef } from 'react';
-import { View, Text, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  TouchableOpacity,
+} from 'react-native';
 import { useBible } from '../hooks/useBible';
 import { BookmarkItem } from '../hooks/useBookmarks';
 import { Andininy, Boky } from '../services/database';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { theme } from '../constants/theme';
+import { Bookmark } from 'lucide-react-native';
+import theme from '../constants/theme';
 
 interface ChapterPageProps {
   boky: Boky;
@@ -17,68 +24,242 @@ interface ChapterPageProps {
   targetVerseId?: number;
   searchQuery?: string;
   isActive: boolean;
+  fontSize: number;
 }
 
-const ChapterPage = ({ boky, toko, selectedVerse, onSelectVerse, bookmarks, targetVerse, targetVerseEnd, targetVerseId, searchQuery, isActive }: ChapterPageProps) => {
+// ─── Composant verset individualisé ──────────────────────────────────────────
+interface VerseRowProps {
+  item: Andininy;
+  index: number;
+  isSelected: boolean;
+  isTarget: boolean;
+  isMarked: boolean;
+  showPerikopaBadge: boolean;
+  fontSize: number;
+  searchQuery?: string;
+  onSelectVerse: (verse: Andininy | null) => void;
+  selectedVerse: Andininy | null;
+}
+
+const VerseRow = memo(({
+  item,
+  index,
+  isSelected,
+  isTarget,
+  isMarked,
+  showPerikopaBadge,
+  fontSize,
+  searchQuery,
+  onSelectVerse,
+  selectedVerse,
+}: VerseRowProps) => {
+
+  // ── Couleurs de fond dynamiques ───────────────────────────────────────────
+  let rowBg          = 'transparent';
+  let borderLeft     = 3;
+  let borderColor    = 'transparent';
+  let borderWidth    = 0;
+
+  if (isSelected) {
+    rowBg         = theme.tokens.reader.verseSelectedBg;
+    borderColor   = theme.tokens.reader.verseSelectedBorder;
+    borderWidth   = 1;
+    borderLeft    = 4;
+  } else if (isTarget) {
+    rowBg         = theme.tokens.reader.perikopaHighlight;
+    borderColor   = theme.colors.gold[600];
+    borderWidth   = 1;
+    borderLeft    = 4;
+  } else if (isMarked) {
+    rowBg         = theme.colors.emerald[50] ?? '#ECFDF5';
+    borderColor   = theme.tokens.reader.bookmarkActive;
+    borderWidth   = 1;
+    borderLeft    = 3;
+  }
+
+  const numberSize = Math.max(11, fontSize * 0.72);
+  const lineH      = fontSize * theme.typography.lineHeight.normal;
+
+  // ── Texte avec surlignage recherche ─────────────────────────────────────
+  const renderText = () => {
+    if (searchQuery && isTarget) {
+      const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const parts   = item.votoatiny.split(new RegExp(`(${escaped})`, 'gi'));
+      return (
+        <Text className="text-text-primary" style={{ fontSize, lineHeight: lineH, fontFamily: theme.typography.fontVerset }}>
+          {parts.map((part, i) =>
+            part.toLowerCase() === searchQuery.toLowerCase() ? (
+              <Text
+                key={i}
+                className="bg-gold-200 text-text-primary font-bold rounded-[3px]"
+                style={{ fontSize }}
+              >
+                {part}
+              </Text>
+            ) : (
+              <Text key={i}>{part}</Text>
+            )
+          )}
+        </Text>
+      );
+    }
+    return (
+      <Text className="text-text-primary" style={{ fontSize, lineHeight: lineH, fontFamily: theme.typography.fontVerset }}>
+        {item.votoatiny}
+      </Text>
+    );
+  };
+
+  return (
+    <Animated.View
+      entering={FadeInDown
+        .delay(index * theme.animation.stagger.delayMs)
+        .springify()
+        .damping(theme.animation.spring.damping)
+        .stiffness(theme.animation.spring.stiffness)
+      }
+      className="mb-0.5"
+    >
+      {/* ── En-tête de section (lohateny) ──────────────────────────────── */}
+      {item.lohateny ? (
+        <View className="flex-row items-center mt-7 mb-4 px-1 gap-2.5">
+          <View className="flex-1 h-[0.5px] bg-primary-200 opacity-60" />
+          <Text className="text-[11px] font-semibold tracking-[2px] uppercase text-text-tertiary text-center">{item.lohateny}</Text>
+          <View className="flex-1 h-[0.5px] bg-primary-200 opacity-60" />
+        </View>
+      ) : null}
+
+      {/* ── Badge Perikopa ─────────────────────────────────────────────── */}
+      {showPerikopaBadge ? (
+        <View className="mb-1.5 ml-11">
+          <View className="self-start bg-gold-100 rounded-full py-0.5 px-2.5 border border-primary-200">
+            <Text className="text-[10px] font-bold tracking-[0.8px] text-gold-700 uppercase">✦ Perikopa</Text>
+          </View>
+        </View>
+      ) : null}
+
+      {/* ── Rangée du verset ───────────────────────────────────────────── */}
+      <TouchableOpacity
+        activeOpacity={0.75}
+        delayLongPress={220}
+        onLongPress={() => onSelectVerse(item)}
+        onPress={() => selectedVerse ? onSelectVerse(null) : null}
+        className="flex-row rounded-md py-3 px-3 border-transparent"
+        style={{
+            backgroundColor: rowBg,
+            borderColor,
+            borderWidth,
+            borderLeftWidth: borderLeft,
+        }}
+      >
+        {/* Numéro */}
+        <View className="w-[30px] items-center pt-0.5 mr-2.5">
+          <Text className="font-bold text-text-tertiary text-center" style={{ fontSize: numberSize, fontFamily: theme.typography.fontUI }}>
+            {item.laharana}
+          </Text>
+          {/* Icône bookmark si marqué */}
+          {isMarked ? (
+            <Bookmark
+              size={10}
+              color={theme.tokens.reader.bookmarkActive}
+              fill={theme.tokens.reader.bookmarkActive}
+              className="mt-1"
+            />
+          ) : null}
+        </View>
+
+        {/* Texte */}
+        <View className="flex-1">
+          {renderText()}
+        </View>
+
+        {/* Indicateur de sélection */}
+        {isSelected ? (
+          <View className="w-1.5 h-1.5 rounded-full bg-primary-600 self-center ml-2" />
+        ) : null}
+      </TouchableOpacity>
+    </Animated.View>
+  );
+});
+
+// ─── ChapterPage principal ────────────────────────────────────────────────────
+const ChapterPage = ({
+  boky,
+  toko,
+  selectedVerse,
+  onSelectVerse,
+  bookmarks,
+  targetVerse,
+  targetVerseEnd,
+  targetVerseId,
+  searchQuery,
+  isActive,
+  fontSize,
+}: ChapterPageProps) => {
   const { getVerses } = useBible();
-  const [verses, setVerses] = useState<Andininy[]>([]);
+  const [verses, setVerses]   = useState<Andininy[]>([]);
   const [loading, setLoading] = useState(true);
-  const flatListRef = useRef<FlatList<Andininy>>(null);
+  const flatListRef           = useRef<FlatList<Andininy>>(null);
 
   useEffect(() => {
     let mounted = true;
-    
     if (isActive && verses.length === 0) {
       getVerses(boky.slug, toko).then((data) => {
-        if (mounted) {
-          setVerses(data);
-          setLoading(false);
-          
-          if (targetVerseId || targetVerse) {
-            setTimeout(() => {
-              const idx = data.findIndex(v => (targetVerseId ? v.id === targetVerseId : v.laharana === targetVerse));
-              if (idx >= 0) {
-                flatListRef.current?.scrollToIndex({ 
-                  index: idx, 
-                  animated: true, 
-                  viewPosition: 0 
-                });
-              }
-            }, 600);
-          }
+        if (!mounted) return;
+        setVerses(data);
+        setLoading(false);
+        if (targetVerseId || targetVerse) {
+          setTimeout(() => {
+            const idx = data.findIndex(v =>
+              targetVerseId ? v.id === targetVerseId : v.laharana === targetVerse
+            );
+            if (idx >= 0) {
+              flatListRef.current?.scrollToIndex({
+                index: idx,
+                animated: true,
+                viewPosition: 0.15,
+              });
+            }
+          }, 600);
         }
       });
     }
-
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [boky.slug, toko, getVerses, targetVerse, targetVerseId, isActive, verses.length]);
 
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-transparent">
-        <ActivityIndicator size="small" color={theme.colors.primary} />
+        <ActivityIndicator size="small" color={theme.colors.primary[600]} />
       </View>
     );
   }
-  
+
   return (
     <View className="flex-1">
       <FlatList
         ref={flatListRef}
         data={verses}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerClassName="p-4 pb-24"
+        contentContainerClassName="px-5 pt-3 pb-8"
         initialNumToRender={verses.length}
         onScrollToIndexFailed={(info) => {
-          flatListRef.current?.scrollToOffset({ offset: info.averageItemLength * info.index, animated: true });
+          flatListRef.current?.scrollToOffset({
+            offset: info.averageItemLength * info.index,
+            animated: true,
+          });
         }}
+        // Séparateur discret entre versets
+        ItemSeparatorComponent={() => <View className="h-0 bg-transparent" />}
         renderItem={({ item, index }) => {
           const isSelected = selectedVerse?.id === item.id;
-          const isMarked = bookmarks.some(b => b.boky.slug === boky.slug && b.andininy.toko === toko && b.andininy.laharana === item.laharana);
-          
-          // Check if verse is in the target range (for Perikopa)
+          const isMarked   = bookmarks.some(
+            b =>
+              b.boky.slug === boky.slug &&
+              b.andininy.toko === toko &&
+              b.andininy.laharana === item.laharana
+          );
+
           let isTarget = false;
           if (targetVerse && targetVerseEnd) {
             isTarget = item.laharana >= targetVerse && item.laharana <= targetVerseEnd;
@@ -88,78 +269,27 @@ const ChapterPage = ({ boky, toko, selectedVerse, onSelectVerse, bookmarks, targ
             isTarget = item.laharana === targetVerse;
           }
 
-          let containerStyle: any = {
-            marginBottom: 16,
-            flexDirection: 'row',
-            borderRadius: 12,
-            padding: 16,
-            backgroundColor: 'transparent',
-            borderLeftWidth: 3,
-            borderColor: 'transparent',
-          };
-          
-          let showPerikopaBadge = false;
-
-          if (isSelected) {
-            containerStyle.backgroundColor = theme.colors.glassBg;
-            containerStyle.borderColor = theme.colors.primary;
-            containerStyle.borderWidth = 1;
-            containerStyle.borderLeftWidth = 4;
-          } else if (isTarget) {
-            containerStyle.backgroundColor = theme.colors.primaryLight;
-            containerStyle.borderColor = theme.colors.primary;
-            showPerikopaBadge = true;
-          } else if (isMarked) {
-            containerStyle.backgroundColor = 'rgba(16, 185, 129, 0.1)';
-            containerStyle.borderColor = theme.colors.secondary;
-          }
+          // Badge perikopa uniquement sur le 1er verset de la plage
+          const showPerikopaBadge =
+            isTarget &&
+            (targetVerse
+              ? item.laharana === targetVerse
+              : item.id === targetVerseId);
 
           return (
-            <Animated.View entering={FadeInDown.delay(index * 40).springify().damping(18).stiffness(120)}>
-              {item.lohateny && (
-                <View className="mb-4 mt-8 items-center">
-                  <Text className="text-center text-sm font-bold uppercase tracking-widest"
-                    style={{ color: theme.colors.primary, letterSpacing: 2 }}
-                  >
-                    {item.lohateny}
-                  </Text>
-                  <View style={{ width: 40, height: 2, backgroundColor: theme.colors.primary, marginTop: 8, opacity: 0.5 }} />
-                </View>
-              )}
-              
-              {showPerikopaBadge && (
-                <View className="absolute -top-3 left-4 z-10 rounded-full px-3 py-1" style={{ backgroundColor: theme.colors.primary, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 4, elevation: 4 }}>
-                  <Text className="text-[10px] font-bold uppercase tracking-wider text-white">Perikopa</Text>
-                </View>
-              )}
-              
-              <TouchableOpacity
-                activeOpacity={0.7}
-                delayLongPress={250}
-                onLongPress={() => onSelectVerse(item)}
-                onPress={() => {
-                  if (selectedVerse) {
-                    onSelectVerse(null);
-                  }
-                }}
-                style={containerStyle}
-              >
-                <Text className="mr-4 mt-1 text-sm font-bold" style={{ color: theme.colors.primary, fontFamily: theme.typography.numberFont }}>{item.laharana}</Text>
-                <Text className="flex-1 text-lg" style={{ color: theme.colors.textPrimary, fontFamily: theme.typography.verseFont, lineHeight: 30 }}>
-                  {(searchQuery && isTarget) ? (
-                    item.votoatiny.split(new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')).map((part, i) =>
-                      part.toLowerCase() === searchQuery.toLowerCase() ? (
-                        <Text key={i} style={{ backgroundColor: theme.colors.primary, color: '#000', fontWeight: 'bold' }}>{part}</Text>
-                      ) : (
-                        <Text key={i}>{part}</Text>
-                      )
-                    )
-                  ) : (
-                    <Text>{item.votoatiny}</Text>
-                  )}
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
+            <VerseRow
+              key={item.id}
+              item={item}
+              index={index}
+              isSelected={isSelected}
+              isTarget={isTarget}
+              isMarked={isMarked}
+              showPerikopaBadge={showPerikopaBadge}
+              fontSize={fontSize}
+              searchQuery={searchQuery}
+              onSelectVerse={onSelectVerse}
+              selectedVerse={selectedVerse}
+            />
           );
         }}
       />
