@@ -18,6 +18,7 @@ import Animated, { FadeIn, FadeInDown, Layout } from 'react-native-reanimated';
 import theme from '../constants/theme';
 import { PerikopaService } from '../services/PerikopaService';
 import { usePerikopa } from '../context/PerikopaContext';
+import * as Network from 'expo-network';
 
 interface UpdateModalProps {
   isVisible: boolean;
@@ -45,6 +46,15 @@ export default function UpdateModal({ isVisible, onClose, onSuccess, isMandatory
   const checkUpdate = async () => {
     setStatus('checking');
     try {
+      const netState = await Network.getNetworkStateAsync();
+      const isConnected = netState.isConnected && netState.isInternetReachable !== false;
+      if (!isConnected) {
+        setStatus('error');
+        setErrorType('network');
+        setErrorMsg('Tsy misy internet ny findainao. Ampifandraiso amin\'ny internet izy vao afaka mijery ny fanavaozana.');
+        return;
+      }
+
       const isAvailable = await PerikopaService.checkForUpdate();
       
       // Petit délai pour l'UX si c'est trop instantané
@@ -58,23 +68,38 @@ export default function UpdateModal({ isVisible, onClose, onSuccess, isMandatory
     } catch (e) {
       setStatus('error');
       setErrorType('network');
-      setErrorMsg('Mila internet ianao vao afaka mijery ny fanavaozana.');
+      setErrorMsg('Tsy misy internet ny findainao. Ampifandray amin\'ny internet izy vao afaka mijery ny fanavaozana.');
     }
   };
 
   const handleDownload = async () => {
     setStatus('downloading');
-    const success = await refreshFromRemote();
-    if (success) {
-      setStatus('success');
-      setTimeout(() => {
-        onSuccess();
-        onClose();
-      }, 1500);
-    } else {
+    try {
+      const netState = await Network.getNetworkStateAsync();
+      const isConnected = netState.isConnected && netState.isInternetReachable !== false;
+      if (!isConnected) {
+        setStatus('error');
+        setErrorType('network');
+        setErrorMsg('Tsy misy internet ny findainao. Ampifandray amin\'ny internet izy vao afaka maka ny fandaharana.');
+        return;
+      }
+
+      const success = await refreshFromRemote();
+      if (success) {
+        setStatus('success');
+        setTimeout(() => {
+          onSuccess();
+          onClose();
+        }, 1500);
+      } else {
+        setStatus('error');
+        setErrorType('network');
+        setErrorMsg('Tsy misy internet ny findainao ou misy olana ny serveur. Manandrama indray.');
+      }
+    } catch (e) {
       setStatus('error');
       setErrorType('network');
-      setErrorMsg('Mila internet ianao vao afaka maka ny fandaharana vaovao.');
+      setErrorMsg('Tsy misy internet ny findainao. Ampifandray amin\'ny internet izy vao afaka maka ny fandaharana.');
     }
   };
 

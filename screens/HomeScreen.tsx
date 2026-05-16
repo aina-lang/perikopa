@@ -12,6 +12,7 @@ import { ActivityIndicator, Alert } from 'react-native';
 import UpdateModal from '../components/UpdateModal';
 import { useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AnalyticsService } from '../services/AnalyticsService';
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   const route = useRoute<any>();
@@ -30,6 +31,11 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       }
     };
     checkFirstLaunch();
+  }, []);
+
+  React.useEffect(() => {
+    // Ping silencieux vers Google Sheets
+    AnalyticsService.pingActivity();
   }, []);
 
   React.useEffect(() => {
