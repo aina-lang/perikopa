@@ -13,7 +13,7 @@ import { Andininy } from '../services/database';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import theme from '../constants/theme';
 
-const NUM_COLS  = 5;
+const NUM_COLS  = 4;
 const GAP       = 8;
 const PADDING   = 16;
 const { width } = Dimensions.get('window');
