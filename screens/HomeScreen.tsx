@@ -17,8 +17,11 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         boky: target.book,
         toko: target.chapter,
         targetVerse: target.verse,
+        targetVerseEnd: target.verseEnd,
         targetVerseId: target.verseId
       });
+    } else {
+      alert("Tsy hita ny andininy: " + ref);
     }
   };
   return (

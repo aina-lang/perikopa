@@ -12,11 +12,12 @@ interface ChapterPageProps {
   onSelectVerse: (verse: Andininy | null) => void;
   bookmarks: BookmarkItem[];
   targetVerse?: number;
+  targetVerseEnd?: number;
   targetVerseId?: number;
   searchQuery?: string;
 }
 
-const ChapterPage = ({ boky, toko, selectedVerse, onSelectVerse, bookmarks, targetVerse, targetVerseId, searchQuery }: ChapterPageProps) => {
+const ChapterPage = ({ boky, toko, selectedVerse, onSelectVerse, bookmarks, targetVerse, targetVerseEnd, targetVerseId, searchQuery }: ChapterPageProps) => {
   const { getVerses } = useBible();
   const [verses, setVerses] = useState<Andininy[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,7 +69,16 @@ const ChapterPage = ({ boky, toko, selectedVerse, onSelectVerse, bookmarks, targ
         renderItem={({ item, index }) => {
           const isSelected = selectedVerse?.id === item.id;
           const isMarked = bookmarks.some(b => b.boky.slug === boky.slug && b.andininy.toko === toko && b.andininy.laharana === item.laharana);
-          const isTarget = targetVerseId ? item.id === targetVerseId : item.laharana === targetVerse;
+          
+          // Check if verse is in the target range (for Perikopa)
+          let isTarget = false;
+          if (targetVerse && targetVerseEnd) {
+            isTarget = item.laharana >= targetVerse && item.laharana <= targetVerseEnd;
+          } else if (targetVerseId) {
+            isTarget = item.id === targetVerseId;
+          } else if (targetVerse) {
+            isTarget = item.laharana === targetVerse;
+          }
 
           let containerClass = 'mb-2 flex-row rounded-xl p-3 ';
           let containerStyle: any = {};

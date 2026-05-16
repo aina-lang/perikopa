@@ -11,7 +11,7 @@ import * as Clipboard from 'expo-clipboard';
 import { useBookmarks } from '../hooks/useBookmarks';
 
 export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
-  const { boky, toko, targetVerse, targetVerseId, searchQuery } = route.params;
+  const { boky, toko, targetVerse, targetVerseEnd, targetVerseId, searchQuery } = route.params;
   const { getChapters } = useBible();
   const { addBookmark, removeBookmark, isBookmarked, bookmarks } = useBookmarks();
   
@@ -112,6 +112,7 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
                   onSelectVerse={setSelectedVerse}
                   bookmarks={bookmarks}
                   targetVerse={chapterToko === toko ? targetVerse : undefined}
+                  targetVerseEnd={chapterToko === toko ? targetVerseEnd : undefined}
                   targetVerseId={chapterToko === toko ? targetVerseId : undefined}
                   searchQuery={searchQuery}
                 />
