@@ -14,6 +14,7 @@ import BookmarksScreen from './screens/BookmarksScreen';
 import SearchScreen from './screens/SearchScreen';
 import AboutScreen from './screens/AboutScreen';
 import PerikopaScreen from './screens/PerikopaScreen';
+import VersesScreen from './screens/VersesScreen';
 
 import { TouchableOpacity, View, StatusBar } from 'react-native';
 import { Bookmark, Search, Info } from 'lucide-react-native';
@@ -77,6 +78,14 @@ export default function App() {
                 options={({ route }: any) => ({ 
                   ...HEADER_STYLE,
                   title: route.params.boky.anarana,
+                })}
+              />
+              <Stack.Screen 
+                name="Verses" 
+                component={VersesScreen} 
+                options={({ route }: any) => ({ 
+                  ...HEADER_STYLE,
+                  title: `${route.params.boky.anarana} ${route.params.toko}`,
                 })}
               />
               <Stack.Screen 

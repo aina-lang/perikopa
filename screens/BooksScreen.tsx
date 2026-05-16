@@ -43,7 +43,7 @@ export default function BooksScreen({ navigation }: BooksScreenProps) {
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
         renderItem={({ item, index }) => (
-          <Animated.View entering={FadeInUp.delay(index * 15).springify().damping(12)}>
+          <Animated.View entering={FadeInUp.delay(index * 8).duration(180)}>
             <TouchableOpacity
               onPress={() => navigation.navigate('Chapters', { boky: item })}
               className="mb-3 flex-row items-center rounded-2xl border border-background-tertiary bg-background-primary p-4 shadow-sm shadow-primary-600/10"

@@ -5,6 +5,7 @@ export type RootStackParamList = {
   Home: undefined;
   Books: undefined;
   Chapters: { boky: Boky };
+  Verses: { boky: Boky; toko: number };
   Reader: { boky: Boky; toko: number; targetVerse?: number; targetVerseEnd?: number; targetVerseId?: number; searchQuery?: string };
   Bookmarks: undefined;
   Search: undefined;
@@ -14,6 +15,7 @@ export type RootStackParamList = {
 
 export type BooksScreenProps = NativeStackScreenProps<RootStackParamList, 'Books'>;
 export type ChaptersScreenProps = NativeStackScreenProps<RootStackParamList, 'Chapters'>;
+export type VersesScreenProps = NativeStackScreenProps<RootStackParamList, 'Verses'>;
 export type ReaderScreenProps = NativeStackScreenProps<RootStackParamList, 'Reader'>;
 export type SearchScreenProps = NativeStackScreenProps<RootStackParamList, 'Search'>;
 export type HomeScreenProps = NativeStackScreenProps<RootStackParamList, 'Home'>;

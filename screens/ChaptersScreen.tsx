@@ -76,16 +76,11 @@ export default function ChaptersScreen({ route, navigation }: ChaptersScreenProp
         showsHorizontalScrollIndicator={false}
         renderItem={({ item, index }) => (
           <Animated.View
-            entering={FadeInDown
-              .delay(index * 15)
-              .springify()
-              .damping(theme.animation.spring.damping)
-              .stiffness(theme.animation.spring.stiffness)
-            }
+            entering={FadeInDown.delay(index * 6).duration(150)}
             style={{ width: CELL_SIZE, marginBottom: GAP, marginRight: (index + 1) % NUM_COLS === 0 ? 0 : GAP }}
           >
             <TouchableOpacity
-              onPress={() => navigation.navigate('Reader', { boky, toko: item })}
+              onPress={() => navigation.navigate('Verses', { boky, toko: item })}
               activeOpacity={0.75}
               className="rounded-2xl bg-background-primary items-center justify-center border border-background-tertiary shadow-sm shadow-primary-600/10 gap-1"
               style={{ width: CELL_SIZE, height: CELL_SIZE, elevation: 2 }}
