@@ -267,7 +267,17 @@ const PerikopaScreen = memo(({ navigation }: PerikopaScreenProps) => {
                       {entry.date.split(' ')[0]}
                     </Text>
                     <Text className="text-[9px] font-semibold text-blue-300" numberOfLines={1}>
-                      {entry.date.split(' ').slice(1).join(' ')}
+                      {(() => {
+                        const parts = entry.date.split(' ');
+                        const monthAbbr = parts[1]?.replace('.', '').toUpperCase();
+                        const year = parts[2];
+                        const monthsMg: any = {
+                          'JAN': 'Janoary', 'FEV': 'Febroary', 'MAR': 'Martsa', 'AVR': 'Aprily',
+                          'MAI': 'May', 'JUN': 'Jona', 'JUL': 'Jolay', 'AOU': 'Aogositra',
+                          'SEP': 'Septambra', 'OCT': 'Oktobra', 'NOV': 'Novambra', 'DEC': 'Desambra'
+                        };
+                        return `${monthsMg[monthAbbr] || monthAbbr} ${year}`;
+                      })()}
                     </Text>
                   </View>
 

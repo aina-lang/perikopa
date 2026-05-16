@@ -129,7 +129,19 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             </View>
             {nextEntry && (
               <View className="bg-white/20 rounded-full px-3 py-1">
-                <Text className="text-[11px] font-bold text-white">{nextEntry.date.split(' ').slice(0, 2).join(' ')}</Text>
+                <Text className="text-[11px] font-bold text-white">
+                  {(() => {
+                    const parts = nextEntry.date.split(' ');
+                    const day = parts[0];
+                    const monthAbbr = parts[1]?.replace('.', '').toUpperCase();
+                    const monthsMg: any = {
+                      'JAN': 'Janoary', 'FEV': 'Febroary', 'MAR': 'Martsa', 'AVR': 'Aprily',
+                      'MAI': 'May', 'JUN': 'Jona', 'JUL': 'Jolay', 'AOU': 'Aogositra',
+                      'SEP': 'Septambra', 'OCT': 'Oktobra', 'NOV': 'Novambra', 'DEC': 'Desambra'
+                    };
+                    return `${day} ${monthsMg[monthAbbr] || monthAbbr}`;
+                  })()}
+                </Text>
               </View>
             )}
           </View>
