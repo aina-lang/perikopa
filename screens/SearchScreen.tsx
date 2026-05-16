@@ -183,8 +183,8 @@ export default function SearchScreen({ }: SearchScreenProps) {
       {/* ══════════════════════════════════════════════════════════════
           BARRE DE RECHERCHE
       ══════════════════════════════════════════════════════════════ */}
-      <View className="border-b border-background-tertiary bg-background-primary px-4 pb-3 pt-2">
-        <View className="flex-row items-center rounded-2xl border-2 border-primary-600 bg-background-secondary px-4">
+      <View className="bg-background-primary px-4 pb-3 pt-2">
+        <View className="flex-row items-center rounded-2xl bg-background-secondary px-4">
           <Search size={20} color={theme.colors.primary[600]} />
           <TextInput
             ref={inputRef}
@@ -209,7 +209,7 @@ export default function SearchScreen({ }: SearchScreenProps) {
       {/* ══════════════════════════════════════════════════════════════
           CHIPS FILTRES LIVRES — toujours visible
       ══════════════════════════════════════════════════════════════ */}
-      <View style={{ height: 56 }} className="border-b border-background-tertiary bg-background-primary/50">
+      <View style={{ height: 56 }} className="bg-background-primary/50">
         <ScrollView
           ref={scrollRef}
           horizontal
