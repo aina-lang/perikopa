@@ -2,6 +2,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Boky } from '../services/database';
 
 export type RootStackParamList = {
+  Onboarding: undefined;
   Home: undefined;
   Books: undefined;
   Chapters: { boky: Boky };
@@ -12,6 +13,8 @@ export type RootStackParamList = {
   About: undefined;
   Perikopa: undefined;
 };
+
+export type OnboardingScreenProps = NativeStackScreenProps<RootStackParamList, 'Onboarding'>;
 
 export type BooksScreenProps = NativeStackScreenProps<RootStackParamList, 'Books'>;
 export type ChaptersScreenProps = NativeStackScreenProps<RootStackParamList, 'Chapters'>;

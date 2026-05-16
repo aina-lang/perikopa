@@ -1,9 +1,11 @@
 import './global.css';
+import React, { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SQLiteProvider } from 'expo-sqlite';
 import { PerikopaProvider } from './context/PerikopaContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { RootStackParamList } from './navigation/types';
 import HomeScreen from './screens/HomeScreen';
@@ -15,8 +17,9 @@ import SearchScreen from './screens/SearchScreen';
 import AboutScreen from './screens/AboutScreen';
 import PerikopaScreen from './screens/PerikopaScreen';
 import VersesScreen from './screens/VersesScreen';
+import OnboardingScreen from './screens/OnboardingScreen';
 
-import { TouchableOpacity, View, StatusBar } from 'react-native';
+import { TouchableOpacity, View, StatusBar, ActivityIndicator } from 'react-native';
 import { Bookmark, Search, Info } from 'lucide-react-native';
 import theme from './constants/theme';
 
@@ -34,13 +37,38 @@ const HEADER_STYLE = {
 };
 
 export default function App() {
+  const [isFirstLaunch, setIsFirstLaunch] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem('hasSeenOnboarding').then(value => {
+      if (value === null) {
+        setIsFirstLaunch(true);
+      } else {
+        setIsFirstLaunch(false);
+      }
+    });
+  }, []);
+
+  if (isFirstLaunch === null) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background-primary">
+        <ActivityIndicator size="large" color={theme.colors.primary[600]} />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaProvider>
       <StatusBar backgroundColor={theme.colors.background.primary} barStyle="dark-content" translucent={false} />
       <NavigationContainer>
         <SQLiteProvider databaseName="perikopa.db" assetSource={{ assetId: require('./assets/perikopa.db') }}>
           <PerikopaProvider>
-            <Stack.Navigator initialRouteName="Home">
+            <Stack.Navigator initialRouteName={isFirstLaunch ? "Onboarding" : "Home"}>
+              <Stack.Screen 
+                name="Onboarding" 
+                component={OnboardingScreen} 
+                options={{ headerShown: false }} 
+              />
               <Stack.Screen 
                 name="Home" 
                 component={HomeScreen} 
