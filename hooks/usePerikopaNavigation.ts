@@ -1,7 +1,7 @@
 import { useBible } from './useBible';
 
 export const usePerikopaNavigation = () => {
-  const { getBooks, getVerses } = useBible();
+  const { getBooks, getVerses, getChapters } = useBible();
 
   const parseReference = async (ref: string) => {
     // Trim and normalize spaces
@@ -83,17 +83,17 @@ export const usePerikopaNavigation = () => {
       );
     }
 
-    if (!book) {
-      console.log('DEBUG: Book NOT found for:', fullName);
-      return null;
-    }
+    if (!book) return null;
 
-    console.log('DEBUG: Book found:', book.anarana, 'slug:', book.slug);
-    const verses = await getVerses(book.slug, chapter);
+    // Find the actual internal numero of the chapter (e.g., 12 for 1TI ch 2)
+    const allChapters = await getChapters(book.slug);
+    const actualNumero = allChapters[chapter - 1] || chapter;
+
+    const verses = await getVerses(book.slug, actualNumero);
     const targetVerse = verses.find(v => v.laharana === verseStart);
     console.log('DEBUG: Target verse ID found:', targetVerse?.id, 'Total verses in chapter:', verses.length);
 
-    return { book, chapter, verse: verseStart, verseEnd, verseId: targetVerse?.id };
+    return { book, chapter: actualNumero, verse: verseStart, verseEnd, verseId: targetVerse?.id };
   };
 
   return { parseReference };

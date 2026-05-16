@@ -15,21 +15,20 @@ interface ChapterPageProps {
   targetVerseEnd?: number;
   targetVerseId?: number;
   searchQuery?: string;
+  isActive: boolean;
 }
 
-const ChapterPage = ({ boky, toko, selectedVerse, onSelectVerse, bookmarks, targetVerse, targetVerseEnd, targetVerseId, searchQuery }: ChapterPageProps) => {
+const ChapterPage = ({ boky, toko, selectedVerse, onSelectVerse, bookmarks, targetVerse, targetVerseEnd, targetVerseId, searchQuery, isActive }: ChapterPageProps) => {
   const { getVerses } = useBible();
   const [verses, setVerses] = useState<Andininy[]>([]);
-  const [loading, setLoading] = useState(true);
   const flatListRef = useRef<FlatList<Andininy>>(null);
 
   useEffect(() => {
     let mounted = true;
-    getVerses(boky.slug, toko).then((data) => {
-      if (mounted) {
-        console.log(`DEBUG: ChapterPage loaded ${data.length} verses for ${boky.slug} ch ${toko}`);
-        setVerses(data);
-        setLoading(false);
+    if (isActive && verses.length === 0) {
+      getVerses(boky.slug, toko).then((data) => {
+        if (mounted) {
+          setVerses(data);
         
         if (targetVerseId || targetVerse) {
           setTimeout(() => {
@@ -46,20 +45,13 @@ const ChapterPage = ({ boky, toko, selectedVerse, onSelectVerse, bookmarks, targ
         }
       }
     });
+    }
     return () => {
       mounted = false;
     };
   }, [boky.slug, toko, getVerses, targetVerse, targetVerseId]);
 
   
-  if (loading) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" color="#1e3a8a" />
-      </View>
-    );
-  }
-
   return (
     <View className="flex-1 bg-white">
       <FlatList

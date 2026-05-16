@@ -49,12 +49,11 @@ export const useBible = () => {
     );
     if (!book) return [];
 
-    // Get toko by relative index (toko - 1)
-    const allTokos = await db.getAllAsync<{ id: number }>(
-      'SELECT id FROM tokos WHERE book_id = ? ORDER BY numero ASC',
-      [book.id]
+    // Get toko id
+    const tokoRow = await db.getFirstAsync<{ id: number }>(
+      'SELECT id FROM tokos WHERE book_id = ? AND numero = ?',
+      [book.id, toko]
     );
-    const tokoRow = allTokos[toko - 1];
     if (!tokoRow) return [];
 
     // Get verses
@@ -132,5 +131,32 @@ export const useBible = () => {
     });
   }, [db]);
 
-  return { getBooks, getChapters, getVerses, searchVerses };
+  const getAllChaptersFlattened = useCallback(async (): Promise<{ boky: Boky, toko: number, index: number }[]> => {
+    const allBooks = await getBooks();
+    const result: { boky: Boky, toko: number, index: number }[] = [];
+    
+    const allTokos = await db.getAllAsync<{ book_id: number, numero: number }>(
+      'SELECT book_id, numero FROM tokos ORDER BY id ASC'
+    );
+
+    let currentBookId = -1;
+    let relativeIndex = 0;
+    
+    for (const row of allTokos) {
+      if (row.book_id !== currentBookId) {
+        currentBookId = row.book_id;
+        relativeIndex = 1;
+      } else {
+        relativeIndex++;
+      }
+
+      const book = allBooks.find(b => b.id === row.book_id);
+      if (book) {
+        result.push({ boky: book, toko: row.numero, index: relativeIndex });
+      }
+    }
+    return result;
+  }, [db, getBooks]);
+
+  return { getBooks, getChapters, getVerses, searchVerses, getAllChaptersFlattened };
 };
