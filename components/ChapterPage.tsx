@@ -27,14 +27,14 @@ const ChapterPage = ({ boky, toko, selectedVerse, onSelectVerse, bookmarks, targ
     let mounted = true;
     getVerses(boky.slug, toko).then((data) => {
       if (mounted) {
+        console.log(`DEBUG: ChapterPage loaded ${data.length} verses for ${boky.slug} ch ${toko}`);
         setVerses(data);
         setLoading(false);
         
-        // Scroll to target verse — position 0 = at top of screen
         if (targetVerseId || targetVerse) {
-          // Use a slightly longer delay to ensure FlatList is ready
           setTimeout(() => {
             const idx = data.findIndex(v => (targetVerseId ? v.id === targetVerseId : v.laharana === targetVerse));
+            console.log(`DEBUG: Scroll attempt to index: ${idx} (targetVerseId: ${targetVerseId}, targetVerse: ${targetVerse})`);
             if (idx >= 0) {
               flatListRef.current?.scrollToIndex({ 
                 index: idx, 

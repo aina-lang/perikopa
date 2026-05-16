@@ -83,10 +83,15 @@ export const usePerikopaNavigation = () => {
       );
     }
 
-    if (!book) return null;
+    if (!book) {
+      console.log('DEBUG: Book NOT found for:', fullName);
+      return null;
+    }
 
+    console.log('DEBUG: Book found:', book.anarana, 'slug:', book.slug);
     const verses = await getVerses(book.slug, chapter);
     const targetVerse = verses.find(v => v.laharana === verseStart);
+    console.log('DEBUG: Target verse ID found:', targetVerse?.id, 'Total verses in chapter:', verses.length);
 
     return { book, chapter, verse: verseStart, verseEnd, verseId: targetVerse?.id };
   };
