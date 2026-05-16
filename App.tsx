@@ -21,17 +21,12 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar backgroundColor="#F0F7FF" barStyle="dark-content" translucent={false} />
+      <StatusBar backgroundColor="#DBEAFE" barStyle="dark-content" translucent={false} />
       <NavigationContainer>
         <SQLiteProvider databaseName="perikopa.db" assetSource={{ assetId: require('./assets/perikopa.db') }}>
           <Stack.Navigator
             initialRouteName="Home"
-            screenOptions={{
-              headerStyle: { backgroundColor: '#F0F7FF' },
-              headerTintColor: theme.tokens.header.title,
-              headerTitleStyle: { fontWeight: 'bold' },
-              headerShadowVisible: false,
-            }}
+            
           >
             <Stack.Screen 
               name="Home" 
@@ -39,7 +34,14 @@ export default function App() {
               options={({ navigation }: any) => ({ 
                 title: 'Perikopa',
                 headerShown: true,
-                headerStyle: { backgroundColor: '#F0F7FF' },
+                headerStyle: { backgroundColor: '#DBEAFE' },
+                headerTintColor: theme.tokens.header.title,
+                headerTitleStyle: { 
+                  fontWeight: 'bold',
+                  fontSize: 18,
+                  color: theme.tokens.header.title,
+                },
+                headerShadowVisible: false,
                 headerRight: () => (
                   <TouchableOpacity onPress={() => navigation.navigate('About')} className="p-2 mr-2">
                     <Info size={22} color={theme.tokens.header.title} />
@@ -52,7 +54,6 @@ export default function App() {
               component={BooksScreen} 
               options={({ navigation }: any) => ({ 
                 title: 'Baiboly',
-                headerStyle: { backgroundColor: '#F0F7FF' },
                 headerRight: () => (
                   <View className="flex-row gap-1">
                     <TouchableOpacity onPress={() => navigation.navigate('Search')} className="p-2">
@@ -70,7 +71,6 @@ export default function App() {
               component={ChaptersScreen} 
               options={({ route }: any) => ({ 
                 title: route.params.boky.anarana,
-                headerStyle: { backgroundColor: '#F0F7FF' },
               })}
             />
             <Stack.Screen 
@@ -78,7 +78,6 @@ export default function App() {
               component={ReaderScreen} 
               options={({ route }: any) => ({ 
                 title: `${route.params.boky.anarana} ${route.params.toko}`,
-                headerStyle: { backgroundColor: '#F0F7FF' },
               })}
             />
             <Stack.Screen 
@@ -86,7 +85,6 @@ export default function App() {
               component={BookmarksScreen} 
               options={{ 
                 title: 'Favoris',
-                headerStyle: { backgroundColor: '#F0F7FF' },
               }} 
             />
             <Stack.Screen 
@@ -94,7 +92,6 @@ export default function App() {
               component={SearchScreen} 
               options={{ 
                 title: 'Recherche',
-                headerStyle: { backgroundColor: '#F0F7FF' },
               }} 
             />
             <Stack.Screen 
@@ -102,7 +99,6 @@ export default function App() {
               component={AboutScreen} 
               options={{ 
                 title: 'Momba ny App',
-                headerStyle: { backgroundColor: '#F0F7FF' },
               }} 
             />
           </Stack.Navigator>

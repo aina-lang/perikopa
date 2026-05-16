@@ -34,7 +34,6 @@ interface VerseRowProps {
   isSelected: boolean;
   isTarget: boolean;
   isMarked: boolean;
-  showPerikopaBadge: boolean;
   fontSize: number;
   searchQuery?: string;
   onSelectVerse: (verse: Andininy | null) => void;
@@ -47,7 +46,6 @@ const VerseRow = memo(({
   isSelected,
   isTarget,
   isMarked,
-  showPerikopaBadge,
   fontSize,
   searchQuery,
   onSelectVerse,
@@ -126,15 +124,6 @@ const VerseRow = memo(({
           <View className="flex-1 h-[0.5px] bg-primary-200 opacity-60" />
           <Text className="text-[11px] font-semibold tracking-[2px] uppercase text-text-tertiary text-center">{item.lohateny}</Text>
           <View className="flex-1 h-[0.5px] bg-primary-200 opacity-60" />
-        </View>
-      ) : null}
-
-      {/* ── Badge Perikopa ─────────────────────────────────────────────── */}
-      {showPerikopaBadge ? (
-        <View className="mb-1.5 ml-11">
-          <View className="self-start bg-gold-100 rounded-full py-0.5 px-2.5 border border-primary-200">
-            <Text className="text-[10px] font-bold tracking-[0.8px] text-gold-700 uppercase">✦ Perikopa</Text>
-          </View>
         </View>
       ) : null}
 
@@ -269,13 +258,6 @@ const ChapterPage = ({
             isTarget = item.laharana === targetVerse;
           }
 
-          // Badge perikopa uniquement sur le 1er verset de la plage
-          const showPerikopaBadge =
-            isTarget &&
-            (targetVerse
-              ? item.laharana === targetVerse
-              : item.id === targetVerseId);
-
           return (
             <VerseRow
               key={item.id}
@@ -284,7 +266,6 @@ const ChapterPage = ({
               isSelected={isSelected}
               isTarget={isTarget}
               isMarked={isMarked}
-              showPerikopaBadge={showPerikopaBadge}
               fontSize={fontSize}
               searchQuery={searchQuery}
               onSelectVerse={onSelectVerse}

@@ -87,16 +87,8 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
   const updateHeader = (item: FlattenedChapter) => {
     navigation.setOptions({
       title: `${formatBookName(item.boky.anarana)} ${item.index}`,
-      headerStyle: {
-        backgroundColor: '#F0F7FF',
-      },
       headerTintColor:      theme.tokens.header.title,
       headerShadowVisible:  false,
-      headerTitleStyle: {
-        fontWeight: '600',
-        fontSize:   17,
-        color:      theme.tokens.header.title,
-      },
     });
   };
 
@@ -216,26 +208,20 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
       {/* ── FAB (actions verset sélectionné) ─────────────────────────────── */}
       {selectedVerse && (
         <Animated.View
-          entering={FadeInDown.springify().damping(18).stiffness(120)}
+          entering={FadeInDown.springify().damping(theme.animation.spring.damping).stiffness(theme.animation.spring.stiffness)}
           className="absolute left-5 right-5 z-[100] shadow-lg shadow-primary-800/20"
           style={{ bottom: FAB_BOTTOM, elevation: 12 }}
         >
-          <BlurView
-            intensity={Platform.OS === 'ios' ? 80 : 0}
-            tint="light"
-            className="flex-row items-center justify-around rounded-[28px] border border-primary-200/20 py-2.5 px-2 overflow-hidden"
-            style={{
-                backgroundColor: Platform.OS === 'ios'
-                  ? theme.tokens.fab.background
-                  : 'rgba(240, 247, 255, 0.97)',
-            }}
+          <View
+            className="flex-row items-center justify-around rounded-[28px] border border-background-tertiary py-2.5 px-2 overflow-hidden bg-white shadow-xl shadow-black/10"
+            style={{ elevation: 15 }}
           >
             {/* Copier */}
             <TouchableOpacity onPress={handleCopy} className="flex-1 items-center justify-center gap-1.5" activeOpacity={0.7}>
-              <View className="w-12 h-12 rounded-full items-center justify-center bg-primary-600/10">
+              <View className="w-12 h-12 rounded-full items-center justify-center bg-primary-50">
                 <Copy size={20} color={theme.tokens.fab.copyBtn} />
               </View>
-              <Text className="text-[11px] font-medium" style={{ color: theme.tokens.fab.copyBtn }}>Copier</Text>
+              <Text className="text-[11px] font-bold" style={{ color: theme.tokens.fab.copyBtn }}>Copier</Text>
             </TouchableOpacity>
 
             {/* Divider */}
@@ -243,13 +229,13 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
 
             {/* Favori */}
             <TouchableOpacity onPress={handleBookmark} className="flex-1 items-center justify-center gap-1.5" activeOpacity={0.7}>
-              <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: verseIsBookmarked ? 'rgba(5,150,105,0.12)' : 'rgba(232,197,71,0.12)' }}>
+              <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: verseIsBookmarked ? 'rgba(5,150,105,0.08)' : 'rgba(232,197,71,0.08)' }}>
                 {verseIsBookmarked
                   ? <BookmarkMinus size={20} color={theme.tokens.fab.shareBtn} />
                   : <BookmarkPlus  size={20} color={theme.tokens.fab.bookmarkBtn} />
                 }
               </View>
-              <Text className="text-[11px] font-medium" style={{ color: verseIsBookmarked ? theme.tokens.fab.shareBtn : theme.tokens.fab.bookmarkBtn }}>
+              <Text className="text-[11px] font-bold" style={{ color: verseIsBookmarked ? theme.tokens.fab.shareBtn : theme.tokens.fab.bookmarkBtn }}>
                 {verseIsBookmarked ? 'Retirer' : 'Marquer'}
               </Text>
             </TouchableOpacity>
@@ -259,42 +245,52 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
 
             {/* Partager */}
             <TouchableOpacity onPress={() => {}} className="flex-1 items-center justify-center gap-1.5" activeOpacity={0.7}>
-              <View className="w-12 h-12 rounded-full items-center justify-center bg-emerald-500/10">
+              <View className="w-12 h-12 rounded-full items-center justify-center bg-emerald-50">
                 <Share2 size={20} color={theme.tokens.fab.shareBtn} />
               </View>
-              <Text className="text-[11px] font-medium" style={{ color: theme.tokens.fab.shareBtn }}>Partager</Text>
+              <Text className="text-[11px] font-bold" style={{ color: theme.tokens.fab.shareBtn }}>Partager</Text>
             </TouchableOpacity>
-          </BlurView>
+          </View>
         </Animated.View>
       )}
 
       {/* ── Barre slider TOUJOURS visible en bas ─────────────────────────── */}
       <View className="absolute bottom-0 left-0 right-0 z-[90] shadow shadow-black/5" style={{ height: SLIDER_BAR_HEIGHT, elevation: 8 }} pointerEvents="box-none">
-        <BlurView
-          intensity={Platform.OS === 'ios' ? 60 : 0}
-          tint="light"
-          className="flex-1 flex-row items-center px-4 border-t border-background-tertiary gap-2 overflow-hidden"
-          style={{
-              backgroundColor: Platform.OS === 'ios'
-                ? 'rgba(240,247,255,0.85)'
-                : 'rgba(240,247,255,0.98)',
-          }}
+        <View
+          className="flex-1 flex-row items-center px-4 border-t border-background-tertiary gap-2 overflow-hidden bg-[#DBEAFE]"
         >
           <Type size={13} color={theme.colors.primary[400]} strokeWidth={1.5} />
-          <Slider
-            className="flex-1 h-10"
-            minimumValue={10}
-            maximumValue={100}
-            step={10}
-            value={zoomLevel}
-            onValueChange={setZoomLevel}
-            minimumTrackTintColor={theme.colors.primary[600]}
-            maximumTrackTintColor={theme.colors.primary[200]}
-            thumbTintColor={theme.colors.primary[600]}
-          />
+          <View style={{ flex: 1, height: 40, justifyContent: 'center' }}>
+            {/* Ticks/Dots behind the slider */}
+            <View style={{ position: 'absolute', left: 10, right: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              {[...Array(10)].map((_, i) => (
+                <View 
+                  key={i} 
+                  style={{ 
+                    width: 4, 
+                    height: 4, 
+                    borderRadius: 2, 
+                    backgroundColor: theme.colors.primary[200],
+                    opacity: 0.8
+                  }} 
+                />
+              ))}
+            </View>
+            <Slider
+              style={{ width: '100%', height: 40 }}
+              minimumValue={10}
+              maximumValue={100}
+              step={10}
+              value={zoomLevel}
+              onValueChange={setZoomLevel}
+              minimumTrackTintColor={theme.colors.primary[600]}
+              maximumTrackTintColor="transparent" // Let the dots show
+              thumbTintColor={theme.colors.primary[600]}
+            />
+          </View>
           <Type size={20} color={theme.colors.primary[600]} strokeWidth={1.5} />
-          <Text className="text-[11px] text-text-tertiary font-medium min-w-[32px] text-right">{Math.round(calculatedFontSize)}px</Text>
-        </BlurView>
+          <Text className="text-[12px] text-text-primary font-bold min-w-[24px] text-right">{zoomLevel}</Text>
+        </View>
       </View>
 
     </View>

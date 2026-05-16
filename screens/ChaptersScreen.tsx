@@ -31,18 +31,11 @@ export default function ChaptersScreen({ route, navigation }: ChaptersScreenProp
     });
   }, [boky, getChapters]);
 
-  // ── Header navigation ───────────────────────────────────────────────────
   useEffect(() => {
     navigation.setOptions({
       title:              boky.anarana,
-      headerStyle:        { backgroundColor: '#F0F7FF' },
       headerTintColor:    theme.tokens.header.title,
       headerShadowVisible: false,
-      headerTitleStyle: {
-        fontWeight: '700',
-        fontSize:   17,
-        color:      theme.tokens.header.title,
-      },
     });
   }, [boky]);
 
@@ -85,7 +78,7 @@ export default function ChaptersScreen({ route, navigation }: ChaptersScreenProp
         renderItem={({ item, index }) => (
           <Animated.View
             entering={FadeInDown
-              .delay(index * 25)
+              .delay(index * 15)
               .springify()
               .damping(theme.animation.spring.damping)
               .stiffness(theme.animation.spring.stiffness)

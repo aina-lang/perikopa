@@ -44,7 +44,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         {/* ══════════════════════════════════════════════════════════════
             HERO — Verset de l'année
         ══════════════════════════════════════════════════════════════ */}
-        <Animated.View entering={FadeInDown.duration(700).springify()} className="mb-4 overflow-hidden rounded-[24px] bg-primary-800 p-6 shadow-lg shadow-primary-900/30" style={{ elevation: 10 }}>
+        <Animated.View entering={FadeInDown.duration(500).springify()} className="mb-4 overflow-hidden rounded-[24px] bg-primary-800 p-6 shadow-lg shadow-primary-900/30" style={{ elevation: 10 }}>
 
           {/* Fond bleu profond + blob interne */}
           <View className="absolute -right-14 -top-14 h-[200px] w-[200px] rounded-full bg-primary-600 opacity-25" pointerEvents="none" />
@@ -76,7 +76,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         {/* ══════════════════════════════════════════════════════════════
             ACCÈS RAPIDE — Lire la Bible
         ══════════════════════════════════════════════════════════════ */}
-        <Animated.View entering={FadeInDown.delay(120).duration(600).springify()}>
+        <Animated.View entering={FadeInDown.delay(80).duration(450).springify()}>
           <TouchableOpacity
             onPress={() => navigation.navigate('Books')}
             className="mb-5 flex-row items-center rounded-2xl border border-background-tertiary bg-background-primary p-4 shadow-sm shadow-primary-800/10"
@@ -99,7 +99,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         {/* ══════════════════════════════════════════════════════════════
             TABLEAU PERIKOPA
         ══════════════════════════════════════════════════════════════ */}
-        <Animated.View entering={FadeInDown.delay(200).duration(600).springify()}>
+        <Animated.View entering={FadeInDown.delay(150).duration(450).springify()}>
           <View className="mb-3 flex-row items-center gap-2">
             <BookOpen size={16} color={theme.colors.primary[600]} strokeWidth={1.8} />
             <Text className="text-[18px] font-extrabold text-text-primary">
@@ -111,7 +111,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         {CURRENT_PERIKOPA.sections.map((section, sIdx) => (
           <Animated.View
             key={sIdx}
-            entering={FadeInDown.delay(sIdx * 80 + 260).springify()}
+            entering={FadeInDown.delay(sIdx * 60 + 200).springify()}
             className="mb-4 overflow-hidden rounded-2xl border border-background-tertiary bg-background-primary shadow-sm shadow-primary-800/5"
             style={{ elevation: 2 }}
           >
@@ -138,7 +138,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             {section.entries.map((entry, eIdx) => (
               <Animated.View
                 key={entry.id}
-                entering={FadeInRight.delay(eIdx * 40 + sIdx * 80).springify()}
+                entering={FadeInRight.delay(eIdx * 30 + sIdx * 60).springify()}
                 className={`flex-row items-center gap-1 px-2.5 py-2.5 ${eIdx % 2 === 0 ? 'bg-background-secondary' : 'bg-background-primary'} ${eIdx === section.entries.length - 1 ? '' : 'border-b border-background-tertiary'}`}
               >
                 {/* Date */}

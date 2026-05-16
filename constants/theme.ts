@@ -218,25 +218,25 @@ export const radius = {
 export const animation = {
   // Spring physique — swipe chapitres
   spring: {
-    damping:   18,
-    stiffness: 120,
-    mass:      1,
+    damping:   20,
+    stiffness: 180,
+    mass:      0.8,
   },
   // Cascade versets — délai entre chaque verset
   stagger: {
-    delayMs: 40,
-    durationMs: 320,
-    translateY: 20,   // px, départ de la translation
+    delayMs: 25,
+    durationMs: 250,
+    translateY: 15,   // px, départ de la translation
   },
   // FAB apparition
   fab: {
-    durationMs: 200,
-    scaleFrom:  0.85,
+    durationMs: 150,
+    scaleFrom:  0.9,
   },
   // Durée standard
-  durationFast:   150,
-  durationNormal: 280,
-  durationSlow:   420,
+  durationFast:   100,
+  durationNormal: 200,
+  durationSlow:   300,
 } as const;
 
 
