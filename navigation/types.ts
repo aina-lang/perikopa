@@ -3,7 +3,7 @@ import { Boky } from '../services/database';
 
 export type RootStackParamList = {
   Onboarding: undefined;
-  Home: undefined;
+  Home: { checkUpdate?: boolean } | undefined;
   Books: undefined;
   Chapters: { boky: Boky };
   Verses: { boky: Boky; toko: number };

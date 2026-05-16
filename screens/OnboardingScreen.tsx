@@ -31,7 +31,7 @@ interface OnboardingScreenProps {
 const SLIDES = [
   {
     id: 1,
-    title: 'Tongasoa ato amin\'ny Perikopa',
+    title: "Perikopan'ny FAM",
     description: 'Ny Baiboly sy ny fandaharam-potoana eo am-pelatananao amin\'ny fotoana rehetra.',
     icon: <BookOpen size={80} color={theme.colors.primary[600]} strokeWidth={1.5} />,
     color: theme.colors.primary[600],
@@ -65,7 +65,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       flatListRef.current?.scrollToIndex({ index: currentIndex + 1, animated: true });
     } else {
       await AsyncStorage.setItem('hasSeenOnboarding', 'true');
-      navigation.replace('Home');
+      navigation.replace('Home', { checkUpdate: true });
     }
   };
 

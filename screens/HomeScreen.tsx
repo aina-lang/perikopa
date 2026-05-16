@@ -8,11 +8,24 @@ import Animated, { FadeInDown, FadeInUp, FadeInRight } from 'react-native-reanim
 import { usePerikopaNavigation } from '../hooks/usePerikopaNavigation';
 import { BlurView } from 'expo-blur';
 import theme from '../constants/theme';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Alert } from 'react-native';
+import UpdateModal from '../components/UpdateModal';
+import { useRoute } from '@react-navigation/native';
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
+  const route = useRoute<any>();
   const { parseReference } = usePerikopaNavigation();
   const { perikopa, loading } = usePerikopa();
+  const [showUpdate, setShowUpdate] = React.useState(false);
+
+  React.useEffect(() => {
+    // Vérifier si on vient de l'onboarding (via les params)
+    if (route.params?.checkUpdate) {
+      setShowUpdate(true);
+      // On reset les params pour ne pas ré-afficher au prochain focus
+      navigation.setParams({ checkUpdate: false });
+    }
+  }, [route.params?.checkUpdate]);
 
   // On attend que les données soient chargées (AsyncStorage ou local)
   if (loading || !perikopa) {
@@ -232,6 +245,15 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
         <View className="h-6" />
       </ScrollView>
+
+      {/* ── Modale de mise à jour ────────────────────────────────────── */}
+      <UpdateModal 
+        isVisible={showUpdate} 
+        onClose={() => setShowUpdate(false)}
+        onSuccess={() => {
+          // Les données sont déjà rafraîchies par le Provider
+        }}
+      />
     </SafeAreaView>
   );
 }

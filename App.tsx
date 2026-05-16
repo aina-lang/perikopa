@@ -41,11 +41,11 @@ export default function App() {
 
   useEffect(() => {
     AsyncStorage.getItem('hasSeenOnboarding').then(value => {
-      if (value === null) {
+      // if (value === null) {
         setIsFirstLaunch(true);
-      } else {
-        setIsFirstLaunch(false);
-      }
+      // } else {
+      //   setIsFirstLaunch(false);
+      // }
     });
   }, []);
 
