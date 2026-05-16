@@ -10,8 +10,10 @@ import ChaptersScreen from './screens/ChaptersScreen';
 import ReaderScreen from './screens/ReaderScreen';
 import BookmarksScreen from './screens/BookmarksScreen';
 import SearchScreen from './screens/SearchScreen';
+import HomeScreen from './screens/HomeScreen';
+import AboutScreen from './screens/AboutScreen';
 import { TouchableOpacity, View, StatusBar } from 'react-native';
-import { Bookmark, Search } from 'lucide-react-native';
+import { Bookmark, Search, Info } from 'lucide-react-native';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -22,6 +24,7 @@ export default function App() {
       <NavigationContainer>
         <SQLiteProvider databaseName="perikopa.db" assetSource={{ assetId: require('./assets/perikopa.db') }}>
           <Stack.Navigator
+            initialRouteName="Home"
             screenOptions={{
               headerStyle: { backgroundColor: '#1e3a8a' },
               headerTintColor: '#fff',
@@ -30,10 +33,23 @@ export default function App() {
             }}
           >
             <Stack.Screen 
+              name="Home" 
+              component={HomeScreen} 
+              options={({ navigation }: any) => ({ 
+                title: 'Perikopa',
+                headerShown: true,
+                headerRight: () => (
+                  <TouchableOpacity onPress={() => navigation.navigate('About')} className="p-2 mr-2">
+                    <Info size={22} color="#fff" />
+                  </TouchableOpacity>
+                )
+              })} 
+            />
+            <Stack.Screen 
               name="Books" 
               component={BooksScreen} 
               options={({ navigation }: any) => ({ 
-                title: 'Baiboly Malagasy',
+                title: 'Baiboly',
                 headerRight: () => (
                   <View style={{ flexDirection: 'row', gap: 4 }}>
                     <TouchableOpacity onPress={() => navigation.navigate('Search')} className="p-2">
@@ -65,6 +81,11 @@ export default function App() {
               name="Search" 
               component={SearchScreen} 
               options={{ title: 'Recherche' }} 
+            />
+            <Stack.Screen 
+              name="About" 
+              component={AboutScreen} 
+              options={{ title: 'Momba ny App' }} 
             />
           </Stack.Navigator>
         </SQLiteProvider>

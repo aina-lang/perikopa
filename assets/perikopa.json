@@ -1,0 +1,37 @@
+{
+  "year": 2026,
+  "headerVerse": {
+    "text": "MAHEREZA, ARY AOKA HITOMBANDAHY ISIKA HO AN'NY FIRENENTSIKA SY IREO TANÀNAN'ANDRIAMANINTSIKA; ARY AOKA JEHOVAH HANAO IZAY SITRAPONY",
+    "reference": "I Tantara 19:13"
+  },
+  "sections": [
+    {
+      "theme": "AZA MATAHOTRA FA JEHOVAH NO HERINAO",
+      "entries": [
+        { "id": "1", "date": "03 JAN 26", "testamentTaloha": "I Tan. 19:10-13", "filazantsara": "Jaona 16:19-24", "epistily": "I Kor. 16:10-16", "fampaherezana": "Joba 2:10" },
+        { "id": "2", "date": "10 JAN 26", "testamentTaloha": "Deo. 29:13-20", "filazantsara": "Lioka 10:38-42", "epistily": "Asa. 16:6-15", "fampaherezana": "Oha. 31:30" },
+        { "id": "3", "date": "17 JAN 26", "testamentTaloha": "Mpitsara 4:1-9", "filazantsara": "Lioka 7:28-35", "epistily": "I Tim. 2:8-15", "fampaherezana": "Josoa 24:14" },
+        { "id": "4", "date": "24 JAN 26", "testamentTaloha": "I Mpa. 17:7-16", "filazantsara": "Lioka 4:23-30", "epistily": "Asa. 9:36-43", "fampaherezana": "Gal. 6:9" },
+        { "id": "5", "date": "31 JAN 26", "testamentTaloha": "Sal. 49:10-20", "filazantsara": "Marka 13:1-16", "epistily": "Apo. 2:8-11", "fampaherezana": "Eze. 2:6" }
+      ]
+    },
+    {
+      "theme": "MANDROSOA RY MIARAMILAN'I KRISTY",
+      "entries": [
+        { "id": "6", "date": "07 FEV 26", "testamentTaloha": "Neh. 3:33-38", "filazantsara": "Lioka 6:32-36", "epistily": "II Tim. 2:1-7", "fampaherezana": "Sal. 103:21" },
+        { "id": "7", "date": "14 FEV 26", "testamentTaloha": "Isaia 37:3-38", "filazantsara": "Marka 1:16-20", "epistily": "Rom. 14:16-23", "fampaherezana": "Rom. 15:2" },
+        { "id": "8", "date": "21 FEV 26", "testamentTaloha": "Amosa 9:9-15", "filazantsara": "Matio 23:34-39", "epistily": "I Tes. 2:14-20", "fampaherezana": "I Tes. 4:7" },
+        { "id": "9", "date": "28 FEV 26", "testamentTaloha": "Josoa 24:19-28", "filazantsara": "Matio 18:24-28", "epistily": "Gal. 4:6-11", "fampaherezana": "Jakoba 2:24" }
+      ]
+    },
+    {
+      "theme": "MATOKIA FA MOMBA ANAO JEHOVAH",
+      "entries": [
+        { "id": "10", "date": "07 MAR 26", "testamentTaloha": "Isaia 43:1-7", "filazantsara": "Marka 11:1-11", "epistily": "Asa. 18:8-17", "fampaherezana": "I Jao. 4:12" },
+        { "id": "11", "date": "14 MAR 26", "testamentTaloha": "Jer. 30:10-17", "filazantsara": "Jaona 11:47-53", "epistily": "II Kor. 5:11-15", "fampaherezana": "I Kor. 15:58" },
+        { "id": "12", "date": "21 MAR 26", "testamentTaloha": "Hagay 2:15-23", "filazantsara": "Jaona 4:34-43", "epistily": "Joda 17:25", "fampaherezana": "Titosy 3:10" },
+        { "id": "13", "date": "28 MAR 26", "testamentTaloha": "I Tan. 28:20-21", "filazantsara": "Lioka 11:29-36", "epistily": "I Kor. 16:1-9", "fampaherezana": "Oha. 10:1" }
+      ]
+    }
+  ]
+}

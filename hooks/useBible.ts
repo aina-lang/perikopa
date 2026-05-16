@@ -10,19 +10,19 @@ export const useBible = () => {
       id: number;
       shortName: string;
       type: string;
-      name: string;
-      ordre: number;
+      name: string | null;
+      ordre: number | null;
     }>(
       `SELECT b.id, b.shortName, b.type, li.name, li.ordre
        FROM books b
-       JOIN livres_info li ON b.id = li.idBook
-       ORDER BY li.ordre ASC`
+       LEFT JOIN livres_info li ON b.id = li.idBook
+       ORDER BY b.id ASC`
     );
     return rows.map((r) => ({
       id: r.id,
       slug: r.shortName,
-      anarana: r.name,
-      laharana: r.ordre,
+      anarana: r.name || r.shortName,
+      laharana: r.ordre || r.id,
       testament: r.type,
     }));
   }, [db]);
