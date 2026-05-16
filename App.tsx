@@ -20,7 +20,7 @@ import VersesScreen from './screens/VersesScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
 
 import { TouchableOpacity, View, StatusBar, ActivityIndicator } from 'react-native';
-import { Bookmark, Search, Info } from 'lucide-react-native';
+import { Bookmark, Search, Info, Home } from 'lucide-react-native';
 import theme from './constants/theme';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -41,11 +41,11 @@ export default function App() {
 
   useEffect(() => {
     AsyncStorage.getItem('hasSeenOnboarding').then(value => {
-      // if (value === null) {
+      if (value === null) {
         setIsFirstLaunch(true);
-      // } else {
-      //   setIsFirstLaunch(false);
-      // }
+      } else {
+        setIsFirstLaunch(false);
+      }
     });
   }, []);
 
@@ -59,14 +59,17 @@ export default function App() {
 
   const initializeDB = async (db: any) => {
     try {
+      // Indexation pour la performance
       await db.execAsync(`
         CREATE INDEX IF NOT EXISTS idx_books_slug ON books (shortName);
+        CREATE INDEX IF NOT EXISTS idx_books_ordre ON books (ordre);
         CREATE INDEX IF NOT EXISTS idx_tokos_book ON tokos (book_id, numero);
         CREATE INDEX IF NOT EXISTS idx_andininys_toko ON andininys (idToko);
       `);
-      console.log('Database indexes initialized');
+      
+      console.log('Database optimized and indexed');
     } catch (e) {
-      console.error('Error initializing indexes:', e);
+      console.error('Error optimizing database:', e);
     }
   };
 
@@ -93,9 +96,14 @@ export default function App() {
                   ...HEADER_STYLE,
                   title: 'Perikopa',
                   headerRight: () => (
-                    <TouchableOpacity onPress={() => navigation.navigate('About')} className="p-2 mr-2">
-                      <Info size={22} color={theme.tokens.header.title} />
-                    </TouchableOpacity>
+                    <View className="flex-row gap-1 mr-1">
+                      <TouchableOpacity onPress={() => navigation.navigate('Bookmarks')} className="p-2">
+                        <Bookmark size={22} color={theme.tokens.header.title} />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => navigation.navigate('About')} className="p-2">
+                        <Info size={22} color={theme.tokens.header.title} />
+                      </TouchableOpacity>
+                    </View>
                   )
                 })} 
               />
@@ -120,25 +128,55 @@ export default function App() {
               <Stack.Screen 
                 name="Chapters" 
                 component={ChaptersScreen} 
-                options={({ route }: any) => ({ 
+                options={({ route, navigation }: any) => ({ 
                   ...HEADER_STYLE,
                   title: route.params.boky.anarana,
+                  headerRight: () => (
+                    <View className="flex-row gap-1 mr-1">
+                      <TouchableOpacity onPress={() => navigation.navigate('Bookmarks')} className="p-2">
+                        <Bookmark size={22} color={theme.tokens.header.title} />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })} className="p-2">
+                        <Home size={22} color={theme.tokens.header.title} />
+                      </TouchableOpacity>
+                    </View>
+                  )
                 })}
               />
               <Stack.Screen 
                 name="Verses" 
                 component={VersesScreen} 
-                options={({ route }: any) => ({ 
+                options={({ route, navigation }: any) => ({ 
                   ...HEADER_STYLE,
                   title: `${route.params.boky.anarana} ${route.params.toko}`,
+                  headerRight: () => (
+                    <View className="flex-row gap-1 mr-1">
+                      <TouchableOpacity onPress={() => navigation.navigate('Bookmarks')} className="p-2">
+                        <Bookmark size={22} color={theme.tokens.header.title} />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })} className="p-2">
+                        <Home size={22} color={theme.tokens.header.title} />
+                      </TouchableOpacity>
+                    </View>
+                  )
                 })}
               />
               <Stack.Screen 
                 name="Reader" 
                 component={ReaderScreen} 
-                options={({ route }: any) => ({ 
+                options={({ route, navigation }: any) => ({ 
                   ...HEADER_STYLE,
                   title: `${route.params.boky.anarana} ${route.params.toko}`,
+                  headerRight: () => (
+                    <View className="flex-row gap-1 mr-1">
+                      <TouchableOpacity onPress={() => navigation.navigate('Bookmarks')} className="p-2">
+                        <Bookmark size={22} color={theme.tokens.header.title} />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })} className="p-2">
+                        <Home size={22} color={theme.tokens.header.title} />
+                      </TouchableOpacity>
+                    </View>
+                  )
                 })}
               />
               <Stack.Screen 

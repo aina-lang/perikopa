@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
   ActivityIndicator,
@@ -91,17 +91,17 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
     });
   };
 
+  // ─── Scroll Detection ─────────────────────────────────────────────────────────
   const currentIndexRef = useRef(currentIndex);
   useEffect(() => {
     currentIndexRef.current = currentIndex;
   }, [currentIndex]);
 
-  const onScroll = useRef((event: any) => {
+  const onScroll = useCallback((event: any) => {
     const x = event.nativeEvent.contentOffset.x;
     const newIndex = Math.round(x / width);
     
     if (newIndex >= 0 && newIndex < allChapters.length && newIndex !== currentIndexRef.current) {
-      // On met à jour l'état (pour le rendu) et le ref (pour le prochain calcul)
       currentIndexRef.current = newIndex;
       setCurrentIndex(newIndex);
       
@@ -113,7 +113,7 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
       }
       setSelectedVerse(null);
     }
-  }).current;
+  }, [allChapters, navigation, width]);
 
   // ─── Actions ──────────────────────────────────────────────────────────────────
   const handleCopy = async () => {
@@ -197,7 +197,7 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
         })}
         onScroll={onScroll}
         scrollEventThrottle={16}
-        windowSize={5}
+        windowSize={11} // Garde un buffer de 5 de chaque côté pour React Native
         maxToRenderPerBatch={3}
         initialNumToRender={3}
         removeClippedSubviews
@@ -205,7 +205,9 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
         contentContainerStyle={{ paddingBottom: 0 }}
         renderItem={({ item, index }) => {
           const isTargetChapter = item.boky.slug === boky.slug && item.toko === toko;
-          const isActive = Math.abs(index - currentIndex) <= 2;
+          const isActive = Math.abs(index - currentIndex) <= 20; // Pré-fetch 20 de chaque côté
+          const isNearby = Math.abs(index - currentIndex) <= 2; // Ne render la UI lourde que pour 2 de chaque côté
+
           return (
             <View style={{ width, flex: 1, paddingBottom: SLIDER_BAR_HEIGHT + 8 }}>
               <ChapterPage
@@ -219,6 +221,7 @@ export default function ReaderScreen({ route, navigation }: ReaderScreenProps) {
                 targetVerseId={isTargetChapter ? targetVerseId : undefined}
                 searchQuery={searchQuery}
                 isActive={isActive}
+                isNearby={isNearby}
                 fontSize={calculatedFontSize}
               />
             </View>

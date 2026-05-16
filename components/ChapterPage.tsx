@@ -24,6 +24,7 @@ interface ChapterPageProps {
   targetVerseId?: number;
   searchQuery?: string;
   isActive: boolean;
+  isNearby: boolean;
   fontSize: number;
 }
 
@@ -186,6 +187,7 @@ const ChapterPage = ({
   targetVerseId,
   searchQuery,
   isActive,
+  isNearby,
   fontSize,
 }: ChapterPageProps) => {
   const { getVerses } = useBible();
@@ -225,6 +227,13 @@ const ChapterPage = ({
     }
     return () => { mounted = false; };
   }, [boky.slug, toko, getVerses, targetVerse, targetVerseId, isActive, verses.length]);
+
+  if (!isNearby) {
+    // Rend un squelette très léger pour les chapitres hors écran pour ne pas surcharger la mémoire (et on ne render pas de spinner non plus)
+    return (
+      <View className="flex-1" />
+    );
+  }
 
   if (loading) {
     return (

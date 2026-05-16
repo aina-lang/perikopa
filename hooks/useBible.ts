@@ -13,10 +13,9 @@ export const useBible = () => {
       name: string | null;
       ordre: number | null;
     }>(
-      `SELECT b.id, b.shortName, b.type, li.name, li.ordre
-       FROM books b
-       LEFT JOIN livres_info li ON b.id = li.idBook
-       ORDER BY b.id ASC`
+      `SELECT id, shortName, type, name, ordre
+       FROM books
+       ORDER BY id ASC`
     );
 
     const formatBookName = (name: string, slug: string) => {
@@ -117,13 +116,12 @@ export const useBible = () => {
       bookName: string;
     }>(
       `SELECT a.id, a.idToko, a.text,
-              b.shortName, t.numero AS tokoNumero, li.name AS bookName
+              b.shortName, t.numero AS tokoNumero, b.name AS bookName
        FROM andininys a
        JOIN tokos t ON a.idToko = t.id
        JOIN books b ON t.book_id = b.id
-       JOIN livres_info li ON b.id = li.idBook
        WHERE a.text LIKE ? COLLATE NOCASE
-       ORDER BY li.ordre, t.numero, a.id`,
+       ORDER BY b.ordre, t.numero, a.id`,
       [pattern]
     );
 
