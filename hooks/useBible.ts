@@ -18,10 +18,34 @@ export const useBible = () => {
        LEFT JOIN livres_info li ON b.id = li.idBook
        ORDER BY b.id ASC`
     );
+
+    const formatBookName = (name: string, slug: string) => {
+      const mapping: { [key: string]: string } = {
+        '1CH': 'Tantara I',
+        '2CH': 'Tantara II',
+        '1SA': 'Samoela I',
+        '2SA': 'Samoela II',
+        '1KI': 'Mpanjaka I',
+        '2KI': 'Mpanjaka II',
+        '1CO': 'Korintiana I',
+        '2CO': 'Korintiana II',
+        '1TH': 'Tesaloniana I',
+        '2TH': 'Tesaloniana II',
+        '1TI': 'Timoty I',
+        '2TI': 'Timoty II',
+        '1PE': 'Petera I',
+        '2PE': 'Petera II',
+        '1JO': 'Jaona I',
+        '2JO': 'Jaona II',
+        '3JO': 'Jaona III',
+      };
+      return mapping[slug] || name;
+    };
+
     return rows.map((r) => ({
       id: r.id,
       slug: r.shortName,
-      anarana: r.name || r.shortName,
+      anarana: formatBookName(r.name || r.shortName, r.shortName),
       laharana: r.ordre || r.id,
       testament: r.type,
     }));
@@ -93,43 +117,49 @@ export const useBible = () => {
     if (!query.trim()) return [];
     const pattern = `%${query.trim()}%`;
 
+    // Requête optimisée : pas de sous-requête COUNT par ligne
     const rows = await db.getAllAsync<{
       id: number;
       idToko: number;
-      numeroToko: number;
       text: string;
       shortName: string;
       tokoNumero: number;
       bookName: string;
-      rowNum: number;
     }>(
-      `SELECT a.id, a.idToko, a.numeroToko, a.text,
-              b.shortName, t.numero AS tokoNumero, li.name AS bookName,
-              (SELECT COUNT(*) FROM andininys a2 WHERE a2.idToko = a.idToko AND a2.id <= a.id) AS rowNum
+      `SELECT a.id, a.idToko, a.text,
+              b.shortName, t.numero AS tokoNumero, li.name AS bookName
        FROM andininys a
        JOIN tokos t ON a.idToko = t.id
        JOIN books b ON t.book_id = b.id
        JOIN livres_info li ON b.id = li.idBook
        WHERE a.text LIKE ? COLLATE NOCASE
-       ORDER BY li.ordre, t.numero, a.id`,
+       ORDER BY li.ordre, t.numero, a.id
+       LIMIT 150`,
       [pattern]
     );
 
+    // Calcul du numéro de verset en mémoire (beaucoup plus rapide que COUNT(*) SQL)
+    const tokoVerseCountCache = new Map<number, number>();
     return rows.map((r) => {
       let votoatiny = r.text;
       const match = r.text.match(/^\[(.+?)\]\s*/);
       if (match) votoatiny = r.text.substring(match[0].length);
 
+      // Numéro séquentiel approximatif basé sur l'id dans le toko
+      const laharana = (tokoVerseCountCache.get(r.idToko) ?? 0) + 1;
+      tokoVerseCountCache.set(r.idToko, laharana);
+
       return {
         id: r.id,
         boky_slug: r.shortName,
         toko: r.tokoNumero,
-        laharana: r.rowNum,
+        laharana,
         votoatiny,
         bookName: r.bookName,
       };
     });
   }, [db]);
+
 
   const getAllChaptersFlattened = useCallback(async (): Promise<{ boky: Boky, toko: number, index: number }[]> => {
     const allBooks = await getBooks();

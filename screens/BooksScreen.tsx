@@ -41,6 +41,7 @@ export default function BooksScreen({ navigation }: BooksScreenProps) {
         keyExtractor={(item) => item.slug}
         contentContainerClassName="p-4 pb-12"
         showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         renderItem={({ item, index }) => (
           <Animated.View entering={FadeInUp.delay(index * 15).springify().damping(12)}>
             <TouchableOpacity

@@ -9,6 +9,7 @@ export type RootStackParamList = {
   Bookmarks: undefined;
   Search: undefined;
   About: undefined;
+  Perikopa: undefined;
 };
 
 export type BooksScreenProps = NativeStackScreenProps<RootStackParamList, 'Books'>;
@@ -17,3 +18,4 @@ export type ReaderScreenProps = NativeStackScreenProps<RootStackParamList, 'Read
 export type SearchScreenProps = NativeStackScreenProps<RootStackParamList, 'Search'>;
 export type HomeScreenProps = NativeStackScreenProps<RootStackParamList, 'Home'>;
 export type AboutScreenProps = NativeStackScreenProps<RootStackParamList, 'About'>;
+export type PerikopaScreenProps = NativeStackScreenProps<RootStackParamList, 'Perikopa'>;

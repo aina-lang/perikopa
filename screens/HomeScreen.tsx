@@ -2,15 +2,57 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { HomeScreenProps } from '../navigation/types';
-import { CURRENT_PERIKOPA } from '../data/perikopaData';
+import { usePerikopa } from '../context/PerikopaContext';
 import { Book, ChevronRight, BookOpen, Calendar, Star } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeInUp, FadeInRight } from 'react-native-reanimated';
 import { usePerikopaNavigation } from '../hooks/usePerikopaNavigation';
 import { BlurView } from 'expo-blur';
 import theme from '../constants/theme';
+import { ActivityIndicator } from 'react-native';
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   const { parseReference } = usePerikopaNavigation();
+  const { perikopa, loading } = usePerikopa();
+
+  // On attend que les données soient chargées (AsyncStorage ou local)
+  if (loading || !perikopa) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background-primary">
+        <ActivityIndicator size="large" color={theme.colors.primary[600]} />
+      </View>
+    );
+  }
+
+  const yearData = perikopa.perikopa.find(y => y.year === 2026) || perikopa.perikopa[0];
+
+  const getUpcomingPerikopa = () => {
+    const now = new Date();
+    // Fusionner toutes les sections de tous les semestres de l'année
+    const allSections = yearData.semesters.flatMap(s => s.sections);
+    const allEntries = allSections.flatMap(s => s.entries.map(e => ({ ...e, theme: s.theme })));
+    
+    const parseDate = (dateStr: string) => {
+      const [day, monthStr, yearShort] = dateStr.split(' ');
+      const months: any = {
+        'JAN': 0, 'FEV': 1, 'MAR': 2, 'AVR': 3, 'MAI': 4, 'JUN': 5,
+        'JUL': 6, 'AOU': 7, 'SEP': 8, 'OCT': 9, 'NOV': 10, 'DEC': 11,
+        'JAN.': 0, 'FEV.': 1, 'MAR.': 2, 'AVR.': 3, 'MAI.': 4, 'JUN.': 5,
+        'JUL.': 6, 'AOU.': 7, 'SEP.': 8, 'OCT.': 9, 'NOV.': 10, 'DEC.': 11
+      };
+      const m = months[monthStr.toUpperCase().replace('.', '')];
+      return new Date(2000 + parseInt(yearShort), m || 0, parseInt(day));
+    };
+
+    const upcoming = allEntries.find(e => {
+      const d = parseDate(e.date);
+      d.setHours(23, 59, 59);
+      return d >= now;
+    });
+
+    return upcoming || null;
+  };
+
+  const nextEntry = getUpcomingPerikopa();
 
   const handlePressReference = async (ref: string) => {
     const target = await parseReference(ref);
@@ -33,7 +75,10 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         className="flex-1"
         contentContainerClassName="px-4 pt-4"
         showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
       >
+
+
 
         {/* ── Blobs décoratifs ─────────────────────────────────────────── */}
         <View className="absolute inset-0" pointerEvents="none">
@@ -53,23 +98,77 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
           <View className="mb-3.5 flex-row items-center justify-center gap-1.5">
             <Star size={11} color={theme.colors.gold[400]} fill={theme.colors.gold[400]} />
             <Text className="text-[10px] font-bold uppercase tracking-[2px] text-gold-300">
-              Tenin'ny Taona {CURRENT_PERIKOPA.year}
+              Teny Faneva Taona {yearData.year}
             </Text>
             <Star size={11} color={theme.colors.gold[400]} fill={theme.colors.gold[400]} />
           </View>
 
           {/* Verset */}
           <Text className="mb-4 text-center text-[17px] italic leading-[27px] text-[#F0F7FF]" style={{ fontFamily: theme.typography.fontVerset }}>
-            "{CURRENT_PERIKOPA.headerVerse.text}"
+            "{yearData.headerVerse?.text || ''}"
           </Text>
-
+ 
           {/* Référence */}
           <View className="items-center">
             <View className="rounded-full border border-white/20 bg-white/10 px-4 py-1.5">
               <Text className="text-xs font-bold text-gold-300">
-                {CURRENT_PERIKOPA.headerVerse.reference}
+                {yearData.headerVerse?.reference || ''}
               </Text>
             </View>
+          </View>
+        </Animated.View>
+
+        {/* ══════════════════════════════════════════════════════════════
+            PROCHAINE PERIKOPA — Card Premium
+        ══════════════════════════════════════════════════════════════ */}
+        <Animated.View entering={FadeInDown.delay(100).duration(600).springify()} className="mb-6 overflow-hidden rounded-[28px] bg-white border border-primary-100 shadow-xl shadow-primary-900/10">
+          <View className="bg-primary-600 px-5 py-3.5 flex-row items-center justify-between">
+            <View className="flex-row items-center gap-2">
+              <Calendar size={16} color="white" strokeWidth={2.5} />
+              <Text className="text-[11px] font-black uppercase tracking-[1.5px] text-white/90">Manaraka</Text>
+            </View>
+            {nextEntry && (
+              <View className="bg-white/20 rounded-full px-3 py-1">
+                <Text className="text-[11px] font-bold text-white">{nextEntry.date.split(' ').slice(0, 2).join(' ')}</Text>
+              </View>
+            )}
+          </View>
+          
+          <View className="p-5">
+             {nextEntry ? (
+               <>
+                 <Text className="text-[10px] font-bold uppercase tracking-[1px] text-primary-400 mb-1">Lohahevitra</Text>
+                 <Text className="text-[15px] font-extrabold text-primary-900 leading-5 mb-4">{nextEntry.theme}</Text>
+                 
+                 <View className="flex-row flex-wrap gap-2">
+                    {[
+                      { label: 'T. Taloha', ref: nextEntry.testamentTaloha, color: 'bg-primary-50 text-primary-700' },
+                      { label: 'Filazantsara', ref: nextEntry.filazantsara, color: 'bg-emerald-50 text-emerald-700' },
+                      { label: 'Epistily', ref: nextEntry.epistily, color: 'bg-primary-100 text-primary-800' },
+                      { label: 'Fampah.', ref: nextEntry.fampaherezana, color: 'bg-gold-50 text-gold-700' }
+                    ].map((item, idx) => (
+                      <TouchableOpacity 
+                        key={idx} 
+                        onPress={() => handlePressReference(item.ref)}
+                        className={`px-3 py-2 rounded-xl flex-1 min-w-[45%] ${item.color.split(' ')[0]} border border-black/5`}
+                      >
+                        <Text className="text-[9px] font-bold uppercase opacity-60 mb-0.5">{item.label}</Text>
+                        <Text className={`text-[12px] font-black ${item.color.split(' ')[1]}`} numberOfLines={1}>{item.ref}</Text>
+                      </TouchableOpacity>
+                    ))}
+                 </View>
+               </>
+             ) : (
+               <View className="items-center py-2">
+                 <View className="bg-primary-50 rounded-full p-3 mb-3">
+                   <Calendar size={24} color={theme.colors.primary[400]} />
+                 </View>
+                 <Text className="text-[14px] font-bold text-primary-900 text-center mb-1">Tsy mbola misy ny Perikopa manaraka</Text>
+                 <Text className="text-[12px] text-text-tertiary text-center px-4">
+                   Mila manao fanavaozana (update) ny App ianao na miandry ny fandaharam-potoana vaovao.
+                 </Text>
+               </View>
+             )}
           </View>
         </Animated.View>
 
@@ -97,109 +196,29 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         </Animated.View>
 
         {/* ══════════════════════════════════════════════════════════════
-            TABLEAU PERIKOPA
+            ACCÈS AU PROGRAMME COMPLET
         ══════════════════════════════════════════════════════════════ */}
-        <Animated.View entering={FadeInDown.delay(150).duration(450).springify()}>
-          <View className="mb-3 flex-row items-center gap-2">
-            <BookOpen size={16} color={theme.colors.primary[600]} strokeWidth={1.8} />
-            <Text className="text-[18px] font-extrabold text-text-primary">
-              Perikopa {CURRENT_PERIKOPA.year}
-            </Text>
-          </View>
+        <Animated.View entering={FadeInDown.delay(180).duration(450).springify()} className="mb-8">
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Perikopa')}
+            className="flex-row items-center rounded-[24px] border border-primary-200 bg-primary-50 p-5 shadow-sm shadow-primary-800/5"
+            style={{ elevation: 2 }}
+            activeOpacity={0.8}
+          >
+            <View className="h-12 w-12 items-center justify-center rounded-2xl bg-primary-600">
+              <Calendar size={24} color="white" strokeWidth={2} />
+            </View>
+            <View className="ml-4 flex-1">
+              <Text className="text-[16px] font-black text-primary-900">Fandaharam-potoana {yearData.year}</Text>
+              <Text className="mt-0.5 text-[12px] font-bold text-primary-400">Hijery ny perikopa rehetra amin'ity taona ity</Text>
+            </View>
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-white/80">
+              <ChevronRight size={20} color={theme.colors.primary[600]} />
+            </View>
+          </TouchableOpacity>
         </Animated.View>
 
-        {CURRENT_PERIKOPA.sections.map((section, sIdx) => (
-          <Animated.View
-            key={sIdx}
-            entering={FadeInDown.delay(sIdx * 60 + 200).springify()}
-            className="mb-4 overflow-hidden rounded-2xl border border-background-tertiary bg-background-primary shadow-sm shadow-primary-800/5"
-            style={{ elevation: 2 }}
-          >
-            {/* ── En-tête de thème ──────────────────────────────────── */}
-            <View className="flex-row items-center gap-2.5 border-b border-background-tertiary bg-primary-50 px-3.5 py-3">
-              <View className="h-9 w-1 rounded-full bg-primary-600" />
-              <View className="flex-1">
-                <Text className="mb-0.5 text-[9px] font-bold uppercase tracking-[1.5px] text-primary-400">Lohahevitra</Text>
-                <Text className="text-[13px] font-bold leading-[18px] text-primary-800" numberOfLines={2}>{section.theme}</Text>
-              </View>
-              <Calendar size={16} color={theme.colors.primary[400]} className="ml-auto" />
-            </View>
-
-            {/* ── En-tête colonnes ──────────────────────────────────── */}
-            <View className="flex-row items-center gap-1 border-b border-background-tertiary px-2.5 py-2">
-              <Text className="w-[52px] text-[9px] font-extrabold uppercase tracking-[0.8px] text-text-tertiary">Daty</Text>
-              <Text className="flex-1 text-[9px] font-extrabold uppercase tracking-[0.8px] text-text-tertiary">T.Taloha</Text>
-              <Text className="flex-1 text-[9px] font-extrabold uppercase tracking-[0.8px] text-text-tertiary">Filazantsara</Text>
-              <Text className="flex-1 text-[9px] font-extrabold uppercase tracking-[0.8px] text-text-tertiary">Epistily</Text>
-              <Text className="w-[72px] text-[9px] font-extrabold uppercase tracking-[0.8px] text-text-tertiary">Fampah.</Text>
-            </View>
-
-            {/* ── Lignes ────────────────────────────────────────────── */}
-            {section.entries.map((entry, eIdx) => (
-              <Animated.View
-                key={entry.id}
-                entering={FadeInRight.delay(eIdx * 30 + sIdx * 60).springify()}
-                className={`flex-row items-center gap-1 px-2.5 py-2.5 ${eIdx % 2 === 0 ? 'bg-background-secondary' : 'bg-background-primary'} ${eIdx === section.entries.length - 1 ? '' : 'border-b border-background-tertiary'}`}
-              >
-                {/* Date */}
-                <View className="w-[52px]">
-                  <Text className="text-[12px] font-extrabold leading-4 text-text-primary">
-                    {entry.date.split(' ')[0]}
-                  </Text>
-                  <Text className="mt-[1px] text-[9px] font-semibold text-text-tertiary" numberOfLines={1}>
-                    {entry.date.split(' ').slice(1).join(' ')}
-                  </Text>
-                </View>
-
-                {/* Testament Taloha */}
-                <TouchableOpacity
-                  onPress={() => handlePressReference(entry.testamentTaloha)}
-                  className="flex-1 items-center justify-center rounded-lg bg-primary-50 px-1.5 py-1"
-                  activeOpacity={0.7}
-                >
-                  <Text className="text-center text-[10px] font-bold text-primary-700" style={{ lineHeight: 14 }} numberOfLines={2}>
-                    {entry.testamentTaloha}
-                  </Text>
-                </TouchableOpacity>
-
-                {/* Filazantsara */}
-                <TouchableOpacity
-                  onPress={() => handlePressReference(entry.filazantsara)}
-                  className="flex-1 items-center justify-center rounded-lg bg-emerald-50 px-1.5 py-1"
-                  activeOpacity={0.7}
-                >
-                  <Text className="text-center text-[10px] font-bold text-emerald-700" style={{ lineHeight: 14 }} numberOfLines={2}>
-                    {entry.filazantsara}
-                  </Text>
-                </TouchableOpacity>
-
-                {/* Epistily */}
-                <TouchableOpacity
-                  onPress={() => handlePressReference(entry.epistily)}
-                  className="flex-1 items-center justify-center rounded-lg bg-primary-100 px-1.5 py-1"
-                  activeOpacity={0.7}
-                >
-                  <Text className="text-center text-[10px] font-bold text-primary-600" style={{ lineHeight: 14 }} numberOfLines={2}>
-                    {entry.epistily}
-                  </Text>
-                </TouchableOpacity>
-
-                {/* Fampaherezana */}
-                <TouchableOpacity
-                  onPress={() => handlePressReference(entry.fampaherezana)}
-                  className="w-[72px] items-center justify-center rounded-lg bg-gold-100 px-1 py-1"
-                  activeOpacity={0.7}
-                >
-                  <Text className="text-center text-[10px] font-extrabold text-gold-700" style={{ lineHeight: 14 }} numberOfLines={2}>
-                    {entry.fampaherezana}
-                  </Text>
-                </TouchableOpacity>
-              </Animated.View>
-            ))}
-          </Animated.View>
-        ))}
-
-        <View className="h-10" />
+        <View className="h-6" />
       </ScrollView>
     </SafeAreaView>
   );

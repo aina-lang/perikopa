@@ -33,9 +33,7 @@ export default function ChaptersScreen({ route, navigation }: ChaptersScreenProp
 
   useEffect(() => {
     navigation.setOptions({
-      title:              boky.anarana,
-      headerTintColor:    theme.tokens.header.title,
-      headerShadowVisible: false,
+      title: boky.anarana,
     });
   }, [boky]);
 
@@ -75,6 +73,7 @@ export default function ChaptersScreen({ route, navigation }: ChaptersScreenProp
         columnWrapperClassName="flex-row"
         style={{ gap: GAP }}
         showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         renderItem={({ item, index }) => (
           <Animated.View
             entering={FadeInDown

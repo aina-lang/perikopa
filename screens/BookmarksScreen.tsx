@@ -71,6 +71,7 @@ export default function BookmarksScreen({ navigation }: BookmarksScreenProps) {
         keyExtractor={(item) => item.id}
         contentContainerClassName="px-4 pb-8"
         showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         ItemSeparatorComponent={() => <View className="h-2.5" />}
         renderItem={({ item, index }) => (
           <Animated.View

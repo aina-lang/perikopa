@@ -122,7 +122,12 @@ const VerseRow = memo(({
       {item.lohateny ? (
         <View className="flex-row items-center mt-7 mb-4 px-1 gap-2.5">
           <View className="flex-1 h-[0.5px] bg-primary-200 opacity-60" />
-          <Text className="text-[11px] font-semibold tracking-[2px] uppercase text-text-tertiary text-center">{item.lohateny}</Text>
+          <Text 
+            className="font-semibold tracking-[2px] uppercase text-text-tertiary text-center"
+            style={{ fontSize: Math.max(12, fontSize * 0.75) }}
+          >
+            {item.lohateny}
+          </Text>
           <View className="flex-1 h-[0.5px] bg-primary-200 opacity-60" />
         </View>
       ) : null}

@@ -12,11 +12,21 @@ export interface PerikopaSection {
   entries: PerikopaEntry[];
 }
 
-export interface PerikopaPlan {
+export interface PerikopaSemester {
+  id: number;
+  name: string;
+  sections: PerikopaSection[];
+}
+
+export interface PerikopaYear {
   year: number;
   headerVerse: {
     text: string;
     reference: string;
-  };
-  sections: PerikopaSection[];
+  } | null;
+  semesters: PerikopaSemester[];
+}
+
+export interface PerikopaData {
+  perikopa: PerikopaYear[];
 }

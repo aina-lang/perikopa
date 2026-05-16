@@ -5,9 +5,21 @@ import { AboutScreenProps } from '../navigation/types';
 import { Info, ExternalLink, RefreshCw, Heart, BookOpen, Church } from 'lucide-react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import theme from '../constants/theme';
+import { usePerikopa } from '../hooks/usePerikopa';
+import { ActivityIndicator, Alert } from 'react-native';
 
 export default function AboutScreen({ navigation }: AboutScreenProps) {
+  const { refreshFromRemote, updating } = usePerikopa();
   const openFAMWebsite = () => Linking.openURL('https://www.fam.mg');
+
+  const handleUpdate = async () => {
+    const success = await refreshFromRemote();
+    if (success) {
+      Alert.alert('Fandresena', 'Voaray ny fandaharam-potoana vaovao !');
+    } else {
+      Alert.alert('Fisomparana', 'Tsy nahitana fandaharana vaovao. Hamarino ny internet.');
+    }
+  };
 
   return (
     <SafeAreaView edges={['bottom']} className="flex-1 bg-background-primary">
@@ -15,6 +27,7 @@ export default function AboutScreen({ navigation }: AboutScreenProps) {
         className="flex-1"
         contentContainerClassName="px-4 pb-10 pt-6"
         showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
       >
 
         {/* ── Blobs décoratifs ─────────────────────────────────────── */}
@@ -119,13 +132,20 @@ export default function AboutScreen({ navigation }: AboutScreenProps) {
           </Text>
 
           <TouchableOpacity
-            className="mt-4 flex-row items-center justify-center gap-2 rounded-xl bg-primary-600 py-3.5 shadow-md shadow-primary-600/30"
+            className={`mt-4 flex-row items-center justify-center gap-2 rounded-xl py-3.5 shadow-md ${updating ? 'bg-primary-400' : 'bg-primary-600 shadow-primary-600/30'}`}
             style={{ elevation: 5 }}
             activeOpacity={0.85}
-            onPress={() => alert('Efa mampiasa ny version farany ianao.')}
+            onPress={handleUpdate}
+            disabled={updating}
           >
-            <RefreshCw size={16} color="#fff" strokeWidth={2} />
-            <Text className="text-[14px] font-extrabold text-[#FFFFFF]">Hijerena Fandaharana Vaovao</Text>
+            {updating ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <RefreshCw size={16} color="#fff" strokeWidth={2} />
+            )}
+            <Text className="text-[14px] font-extrabold text-[#FFFFFF]">
+              {updating ? 'Andraso kely...' : 'Hijerena Fandaharana Vaovao'}
+            </Text>
           </TouchableOpacity>
         </Animated.View>
 
