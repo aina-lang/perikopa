@@ -38,24 +38,16 @@ export default function UpdateModal({ isVisible, onClose, onSuccess }: UpdateMod
   const checkUpdate = async () => {
     setStatus('checking');
     try {
-      // Simulation d'une vérification réseau
-      const response = await fetch('https://gist.githubusercontent.com/votre_username/votre_gist_id/raw/perikopa.json', { method: 'HEAD' });
+      const isAvailable = await PerikopaService.checkForUpdate();
       
-      if (!response.ok) {
-        setStatus('error');
-        setErrorType('server');
-        setErrorMsg('Misy olana kely fa andramo afaka kely kely eo');
-        return;
-      }
-
-      // Simulation : Dans 50% des cas on dit qu'il y a une update
+      // Petit délai pour l'UX si c'est trop instantané
       setTimeout(() => {
-        if (Math.random() > 0.5) {
+        if (isAvailable) {
           setStatus('available');
         } else {
           setStatus('no-update');
         }
-      }, 1500);
+      }, 800);
     } catch (e) {
       setStatus('error');
       setErrorType('network');

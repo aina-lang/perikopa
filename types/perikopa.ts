@@ -28,5 +28,7 @@ export interface PerikopaYear {
 }
 
 export interface PerikopaData {
+  version: number;
+  lastUpdated: string;
   perikopa: PerikopaYear[];
 }

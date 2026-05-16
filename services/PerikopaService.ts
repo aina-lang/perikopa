@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { PerikopaData } from '../types/perikopa';
+import { PerikopaData, PerikopaYear } from '../types/perikopa';
 import localPerikopa from '../assets/perikopa.json';
 
 const STORAGE_KEY = '@perikopa_remote_data';
@@ -7,9 +7,6 @@ const STORAGE_KEY = '@perikopa_remote_data';
 const GIST_URL = 'https://gist.githubusercontent.com/votre_username/votre_gist_id/raw/perikopa.json';
 
 export class PerikopaService {
-  /**
-   * Charge les données (Priorité : AsyncStorage > Local Assets)
-   */
   static async loadData(): Promise<PerikopaData> {
     try {
       const savedData = await AsyncStorage.getItem(STORAGE_KEY);
@@ -19,7 +16,25 @@ export class PerikopaService {
     } catch (e) {
       console.error('Erreur chargement données distantes:', e);
     }
-    return localPerikopa as PerikopaData;
+    return localPerikopa as unknown as PerikopaData;
+  }
+
+  /**
+   * Vérifie si une mise à jour est disponible sans tout télécharger
+   */
+  static async checkForUpdate(): Promise<boolean> {
+    try {
+      const response = await fetch(`${GIST_URL}?t=${Date.now()}`);
+      if (!response.ok) return false;
+      
+      const remoteData = await response.json() as PerikopaData;
+      const localData = await this.loadData();
+      
+      // Si la version distante est supérieure, une mise à jour est disponible
+      return remoteData.version > (localData.version || 0);
+    } catch (e) {
+      return false;
+    }
   }
 
   /**
@@ -69,7 +84,7 @@ export class PerikopaService {
       });
 
       // 3. Sauvegarder le résultat fusionné
-      const finalData: PerikopaData = { ...currentData, perikopa: mergedPerikopa };
+      const finalData: PerikopaData = { ...remoteData, perikopa: mergedPerikopa };
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(finalData));
       
       return true;
