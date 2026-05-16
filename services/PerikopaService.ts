@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PerikopaData, PerikopaYear } from '../types/perikopa';
-import localPerikopa from '../assets/perikopa.json';
 
 const STORAGE_KEY = '@perikopa_remote_data';
 // URL REELLE DE VOTRE GIST DE MISE A JOUR
@@ -16,7 +15,11 @@ export class PerikopaService {
     } catch (e) {
       console.error('Erreur chargement données distantes:', e);
     }
-    return localPerikopa as unknown as PerikopaData;
+    return {
+      version: 0,
+      lastUpdated: '',
+      perikopa: []
+    };
   }
 
   /**

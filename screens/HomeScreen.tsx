@@ -11,12 +11,26 @@ import theme from '../constants/theme';
 import { ActivityIndicator, Alert } from 'react-native';
 import UpdateModal from '../components/UpdateModal';
 import { useRoute } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   const route = useRoute<any>();
   const { parseReference } = usePerikopaNavigation();
   const { perikopa, loading } = usePerikopa();
   const [showUpdate, setShowUpdate] = React.useState(false);
+  const [isMandatory, setIsMandatory] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkFirstLaunch = async () => {
+      const savedData = await AsyncStorage.getItem('perikopa_db');
+      if (!savedData) {
+        // Premier lancement sans base locale téléchargée
+        setIsMandatory(true);
+        setShowUpdate(true);
+      }
+    };
+    checkFirstLaunch();
+  }, []);
 
   React.useEffect(() => {
     // Vérifier si on vient de l'onboarding (via les params)
@@ -27,11 +41,22 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     }
   }, [route.params?.checkUpdate]);
 
-  // On attend que les données soient chargées (AsyncStorage ou local)
-  if (loading || !perikopa) {
+  // On attend que les données soient chargées (AsyncStorage ou local) et qu'elles contiennent au moins une année
+  if (loading || !perikopa || !perikopa.perikopa || perikopa.perikopa.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-background-primary">
         <ActivityIndicator size="large" color={theme.colors.primary[600]} />
+        <UpdateModal 
+          isVisible={showUpdate} 
+          onClose={() => {
+            setShowUpdate(false);
+            setIsMandatory(false);
+          }}
+          isMandatory={isMandatory}
+          onSuccess={() => {
+            // Les données sont chargées
+          }}
+        />
       </View>
     );
   }
@@ -249,7 +274,11 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       {/* ── Modale de mise à jour ────────────────────────────────────── */}
       <UpdateModal 
         isVisible={showUpdate} 
-        onClose={() => setShowUpdate(false)}
+        onClose={() => {
+          setShowUpdate(false);
+          setIsMandatory(false); // Réinitialiser le mode obligatoire après la fermeture
+        }}
+        isMandatory={isMandatory}
         onSuccess={() => {
           // Les données sont déjà rafraîchies par le Provider
         }}

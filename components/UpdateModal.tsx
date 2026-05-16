@@ -22,16 +22,21 @@ interface UpdateModalProps {
   isVisible: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  isMandatory?: boolean;
 }
 
-export default function UpdateModal({ isVisible, onClose, onSuccess }: UpdateModalProps) {
+export default function UpdateModal({ isVisible, onClose, onSuccess, isMandatory = false }: UpdateModalProps) {
   const [status, setStatus] = useState<'checking' | 'available' | 'no-update' | 'error' | 'downloading' | 'success'>('checking');
   const [errorType, setErrorType] = useState<'network' | 'server'>('network');
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     if (isVisible) {
-      checkUpdate();
+      if (isMandatory) {
+        handleDownload();
+      } else {
+        checkUpdate();
+      }
     }
   }, [isVisible]);
 
@@ -187,19 +192,27 @@ export default function UpdateModal({ isVisible, onClose, onSuccess }: UpdateMod
             
             <View className="w-full mt-8 gap-3">
               <TouchableOpacity 
-                onPress={checkUpdate}
+                onPress={() => {
+                  if (isMandatory) {
+                    handleDownload();
+                  } else {
+                    checkUpdate();
+                  }
+                }}
                 className="bg-primary-600 py-4 rounded-2xl items-center flex-row justify-center gap-2"
               >
                 <RefreshCw size={18} color="white" />
                 <Text className="text-white font-black text-[15px]">Averina indray</Text>
               </TouchableOpacity>
               
-              <TouchableOpacity 
-                onPress={onClose}
-                className="py-3 items-center"
-              >
-                <Text className="text-text-tertiary font-bold text-[14px]">Hizaha avy eo (Ignorer)</Text>
-              </TouchableOpacity>
+              {!isMandatory && (
+                <TouchableOpacity 
+                  onPress={onClose}
+                  className="py-3 items-center"
+                >
+                  <Text className="text-text-tertiary font-bold text-[14px]">Hizaha avy eo (Ignorer)</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         );
@@ -211,7 +224,7 @@ export default function UpdateModal({ isVisible, onClose, onSuccess }: UpdateMod
       visible={isVisible}
       transparent
       animationType="fade"
-      onRequestClose={onClose}
+      onRequestClose={isMandatory ? () => {} : onClose}
     >
       <View className="flex-1 bg-black/60 items-center justify-center px-6">
         <Animated.View 
@@ -220,11 +233,13 @@ export default function UpdateModal({ isVisible, onClose, onSuccess }: UpdateMod
           className="w-full bg-white rounded-[32px] p-6 shadow-2xl overflow-hidden"
         >
           {/* Header simple avec bouton close si on veut */}
-          <View className="flex-row justify-end mb-2">
-            <TouchableOpacity onPress={onClose} className="p-2 -mr-2 bg-slate-50 rounded-full">
-              <X size={16} color={theme.colors.text.tertiary} />
-            </TouchableOpacity>
-          </View>
+          {!isMandatory && (
+            <View className="flex-row justify-end mb-2">
+              <TouchableOpacity onPress={onClose} className="p-2 -mr-2 bg-slate-50 rounded-full">
+                <X size={16} color={theme.colors.text.tertiary} />
+              </TouchableOpacity>
+            </View>
+          )}
 
           {renderContent()}
           
