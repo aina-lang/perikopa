@@ -21,36 +21,46 @@ interface ChapterPageProps {
 const ChapterPage = ({ boky, toko, selectedVerse, onSelectVerse, bookmarks, targetVerse, targetVerseEnd, targetVerseId, searchQuery, isActive }: ChapterPageProps) => {
   const { getVerses } = useBible();
   const [verses, setVerses] = useState<Andininy[]>([]);
+  const [loading, setLoading] = useState(true);
   const flatListRef = useRef<FlatList<Andininy>>(null);
 
   useEffect(() => {
     let mounted = true;
+    
     if (isActive && verses.length === 0) {
       getVerses(boky.slug, toko).then((data) => {
         if (mounted) {
           setVerses(data);
-        
-        if (targetVerseId || targetVerse) {
-          setTimeout(() => {
-            const idx = data.findIndex(v => (targetVerseId ? v.id === targetVerseId : v.laharana === targetVerse));
-            console.log(`DEBUG: Scroll attempt to index: ${idx} (targetVerseId: ${targetVerseId}, targetVerse: ${targetVerse})`);
-            if (idx >= 0) {
-              flatListRef.current?.scrollToIndex({ 
-                index: idx, 
-                animated: true, 
-                viewPosition: 0 
-              });
-            }
-          }, 600);
+          setLoading(false);
+          
+          if (targetVerseId || targetVerse) {
+            setTimeout(() => {
+              const idx = data.findIndex(v => (targetVerseId ? v.id === targetVerseId : v.laharana === targetVerse));
+              if (idx >= 0) {
+                flatListRef.current?.scrollToIndex({ 
+                  index: idx, 
+                  animated: true, 
+                  viewPosition: 0 
+                });
+              }
+            }, 600);
+          }
         }
-      }
-    });
+      });
     }
+
     return () => {
       mounted = false;
     };
-  }, [boky.slug, toko, getVerses, targetVerse, targetVerseId]);
+  }, [boky.slug, toko, getVerses, targetVerse, targetVerseId, isActive, verses.length]);
 
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-transparent">
+        <ActivityIndicator size="small" color="#dbeafe" />
+      </View>
+    );
+  }
   
   return (
     <View className="flex-1 bg-white">
