@@ -31,7 +31,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.maminiaina_mercia.myexpoapp",
+      "package": "com.maminiaina_mercia.perikopa",
       "splash": {
         "image": "./assets/splash.png",
         "resizeMode": "contain",
