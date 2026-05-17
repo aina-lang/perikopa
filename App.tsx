@@ -19,7 +19,8 @@ import PerikopaScreen from './screens/PerikopaScreen';
 import VersesScreen from './screens/VersesScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
 
-import { TouchableOpacity, View, StatusBar, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { Bookmark, Search, Info, Home } from 'lucide-react-native';
 import theme from './constants/theme';
 
@@ -75,7 +76,7 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar backgroundColor={theme.colors.background.primary} barStyle="dark-content" translucent={false} />
+      <StatusBar style="dark" backgroundColor={theme.colors.background.primary} translucent={false} />
       <NavigationContainer>
         <SQLiteProvider 
           databaseName="perikopa.db" 

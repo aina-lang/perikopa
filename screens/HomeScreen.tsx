@@ -23,7 +23,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
   React.useEffect(() => {
     const checkFirstLaunch = async () => {
-      const savedData = await AsyncStorage.getItem('perikopa_db');
+      const savedData = await AsyncStorage.getItem('@perikopa_remote_data');
       if (!savedData) {
         // Premier lancement sans base locale téléchargée
         setIsMandatory(true);
