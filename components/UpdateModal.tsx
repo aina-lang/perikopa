@@ -158,7 +158,10 @@ export default function UpdateModal({ isVisible, onClose, onSuccess, isMandatory
             <Text className="text-center text-[16px] font-bold text-text-primary">
               Eo am-pakana ny fandaharana...
             </Text>
-            <Text className="text-center text-[13px] text-text-tertiary mt-2">
+            <Text className="text-center text-[14px] text-text-secondary mt-3 px-4 font-bold">
+              Tsy maka fotoana betsaka izany (latsaky ny 10Mo).
+            </Text>
+            <Text className="text-center text-[12px] text-text-tertiary mt-2">
               Aza akatona ny App.
             </Text>
           </View>
